@@ -442,9 +442,15 @@
         <div id="adminDashboard" class="hidden space-y-8">
             <div class="flex justify-between items-center">
                 <h2 class="text-3xl font-bold text-gray-900">Dashboard Admin</h2>
-                <div class="flex space-x-4">
+                <div class="flex flex-wrap gap-3">
                     <button onclick="showTeacherManagement()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Kelola Data Guru
+                    </button>
+                    <button onclick="showSubjectManagement()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Kelola Mata Pelajaran
+                    </button>
+                    <button onclick="showManualAttendance()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Input Absensi Manual
                     </button>
                     <button onclick="showAdminExams()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Kelola Ujian
@@ -839,6 +845,328 @@
                 </form>
             </div>
 
+            <!-- Subject Management -->
+            <div id="subjectManagement" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Kelola Mata Pelajaran</h3>
+                    <div class="flex space-x-4">
+                        <button onclick="showAddSubject()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            Tambah Mata Pelajaran
+                        </button>
+                        <button onclick="hideSubjectManagement()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                            Kembali
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kode</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Mata Pelajaran</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kategori</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subjectTable" class="divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Subject Form -->
+            <div id="addSubjectForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Tambah Mata Pelajaran</h3>
+                    <button onclick="hideAddSubject()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form onsubmit="addSubject(event)" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Kode Mata Pelajaran</label>
+                            <input type="text" id="subjectCode" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Contoh: MTK001" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Mata Pelajaran</label>
+                            <input type="text" id="subjectName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Contoh: Matematika" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Kategori</label>
+                        <select id="subjectCategory" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                            <option value="">Pilih Kategori</option>
+                            <option value="Umum">Mata Pelajaran Umum</option>
+                            <option value="Kejuruan">Mata Pelajaran Kejuruan</option>
+                            <option value="Muatan Lokal">Muatan Lokal</option>
+                            <option value="Ekstrakurikuler">Ekstrakurikuler</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Kelas yang Mengambil</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="X RPL 1" class="subject-class-checkbox">
+                                <span class="text-sm">X RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="X RPL 2" class="subject-class-checkbox">
+                                <span class="text-sm">X RPL 2</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XI RPL 1" class="subject-class-checkbox">
+                                <span class="text-sm">XI RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XI RPL 2" class="subject-class-checkbox">
+                                <span class="text-sm">XI RPL 2</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XII RPL 1" class="subject-class-checkbox">
+                                <span class="text-sm">XII RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XII RPL 2" class="subject-class-checkbox">
+                                <span class="text-sm">XII RPL 2</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Deskripsi</label>
+                        <textarea id="subjectDescription" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3" placeholder="Deskripsi mata pelajaran..."></textarea>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="hideAddSubject()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors">
+                            Simpan Mata Pelajaran
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Edit Subject Form -->
+            <div id="editSubjectForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Edit Mata Pelajaran</h3>
+                    <button onclick="hideEditSubject()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form onsubmit="updateSubject(event)" class="space-y-6">
+                    <input type="hidden" id="editSubjectId">
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Kode Mata Pelajaran</label>
+                            <input type="text" id="editSubjectCode" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Mata Pelajaran</label>
+                            <input type="text" id="editSubjectName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Kategori</label>
+                        <select id="editSubjectCategory" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                            <option value="">Pilih Kategori</option>
+                            <option value="Umum">Mata Pelajaran Umum</option>
+                            <option value="Kejuruan">Mata Pelajaran Kejuruan</option>
+                            <option value="Muatan Lokal">Muatan Lokal</option>
+                            <option value="Ekstrakurikuler">Ekstrakurikuler</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Kelas yang Mengambil</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="X RPL 1" class="edit-subject-class-checkbox">
+                                <span class="text-sm">X RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="X RPL 2" class="edit-subject-class-checkbox">
+                                <span class="text-sm">X RPL 2</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XI RPL 1" class="edit-subject-class-checkbox">
+                                <span class="text-sm">XI RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XI RPL 2" class="edit-subject-class-checkbox">
+                                <span class="text-sm">XI RPL 2</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XII RPL 1" class="edit-subject-class-checkbox">
+                                <span class="text-sm">XII RPL 1</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="XII RPL 2" class="edit-subject-class-checkbox">
+                                <span class="text-sm">XII RPL 2</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Deskripsi</label>
+                        <textarea id="editSubjectDescription" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3"></textarea>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="hideEditSubject()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors">
+                            Update Mata Pelajaran
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manual Attendance Form -->
+            <div id="manualAttendanceForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Input Absensi Manual</h3>
+                    <button onclick="hideManualAttendance()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h4 class="font-medium text-blue-900 mb-2">📝 Kapan Menggunakan Input Manual?</h4>
+                    <div class="text-sm text-blue-800 space-y-1">
+                        <p>• Guru/Karyawan/Siswa sakit dan tidak bisa hadir</p>
+                        <p>• Ada yang izin untuk keperluan keluarga</p>
+                        <p>• Guru sedang tugas dinas di luar sekolah</p>
+                        <p>• Karyawan mengambil cuti</p>
+                        <p>• Koreksi data absensi yang salah input</p>
+                    </div>
+                </div>
+
+                <form onsubmit="addManualAttendance(event)" class="space-y-6">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Role</label>
+                            <select id="manualRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required onchange="toggleManualSiswaFields()">
+                                <option value="">Pilih Role</option>
+                                <option value="guru">Guru</option>
+                                <option value="karyawan">Karyawan</option>
+                                <option value="siswa">Siswa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                            <select id="manualName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required onchange="fillTeacherData()">
+                                <option value="">Pilih Nama</option>
+                            </select>
+                            <input type="text" id="manualNameInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent hidden" placeholder="Masukkan nama lengkap" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">NIP/NIS</label>
+                            <input type="text" id="manualIdNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan NIP/NIS" required>
+                        </div>
+                    </div>
+
+                    <div id="manualSiswaFields" class="hidden">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Kelas</label>
+                                <select id="manualKelas" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                    <option value="">Pilih Kelas</option>
+                                    <option value="X RPL 1">X RPL 1</option>
+                                    <option value="X RPL 2">X RPL 2</option>
+                                    <option value="XI RPL 1">XI RPL 1</option>
+                                    <option value="XI RPL 2">XI RPL 2</option>
+                                    <option value="XII RPL 1">XII RPL 1</option>
+                                    <option value="XII RPL 2">XII RPL 2</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Jurusan</label>
+                                <select id="manualJurusan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                    <option value="">Pilih Jurusan</option>
+                                    <option value="RPL">Rekayasa Perangkat Lunak</option>
+                                    <option value="TKJ">Teknik Komputer Jaringan</option>
+                                    <option value="MM">Multimedia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Jenis Absensi</label>
+                            <select id="manualAttendanceType" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                                <option value="">Pilih Jenis Absensi</option>
+                                <option value="masuk">Absen Masuk</option>
+                                <option value="pulang">Absen Pulang</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Status Kehadiran</label>
+                            <select id="manualStatus" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                                <option value="">Pilih Status</option>
+                                <option value="HADIR">Hadir</option>
+                                <option value="SAKIT">Sakit</option>
+                                <option value="IZIN">Izin</option>
+                                <option value="ALPHA">Alpha</option>
+                                <option value="TUGAS DINAS">Tugas Dinas</option>
+                                <option value="CUTI">Cuti</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Tanggal</label>
+                            <input type="date" id="manualDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Waktu</label>
+                            <input type="time" id="manualTime" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Lokasi</label>
+                        <input type="text" id="manualLocation" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Contoh: Ruang Guru, Rumah Sakit, Kantor Dinas" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Keterangan</label>
+                        <textarea id="manualKeterangan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" rows="3" placeholder="Keterangan tambahan (opsional)..."></textarea>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="hideManualAttendance()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg transition-colors">
+                            Simpan Absensi Manual
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Create Exam Form -->
             <div id="createExamForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
                 <div class="flex items-center justify-between mb-6">
@@ -907,6 +1235,7 @@
         let examData = JSON.parse(localStorage.getItem('examData')) || [];
         let examResults = JSON.parse(localStorage.getItem('examResults')) || [];
         let teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
+        let subjectData = JSON.parse(localStorage.getItem('subjectData')) || [];
         let currentStream = null;
         let hasPhoto = false;
         let hasLocation = false;
@@ -1031,6 +1360,53 @@
                 }
             ];
             localStorage.setItem('examData', JSON.stringify(examData));
+        }
+
+        // Sample subject data
+        if (subjectData.length === 0) {
+            subjectData = [
+                {
+                    id: 1,
+                    code: 'MTK001',
+                    name: 'Matematika',
+                    category: 'Umum',
+                    classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2'],
+                    description: 'Mata pelajaran matematika dasar untuk SMK',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    code: 'BIN001',
+                    name: 'Bahasa Indonesia',
+                    category: 'Umum',
+                    classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                    description: 'Mata pelajaran bahasa Indonesia untuk semua kelas',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 3,
+                    code: 'PWB001',
+                    name: 'Pemrograman Web',
+                    category: 'Kejuruan',
+                    classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                    description: 'Mata pelajaran pemrograman web untuk jurusan RPL',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 4,
+                    code: 'BDT001',
+                    name: 'Basis Data',
+                    category: 'Kejuruan',
+                    classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                    description: 'Mata pelajaran basis data untuk jurusan RPL',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            localStorage.setItem('subjectData', JSON.stringify(subjectData));
         }
 
         // Initialize
@@ -1599,17 +1975,22 @@
         }
 
         function showAddTeacher() {
+            document.getElementById('teacherManagement').classList.add('hidden');
             document.getElementById('addTeacherForm').classList.remove('hidden');
         }
 
         function hideAddTeacher() {
             document.getElementById('addTeacherForm').classList.add('hidden');
+            document.getElementById('teacherManagement').classList.remove('hidden');
             resetTeacherForm();
         }
 
         function showEditTeacher(teacherId) {
             const teacher = teacherData.find(t => t.id === teacherId);
             if (!teacher) return;
+
+            // Hide teacher management table
+            document.getElementById('teacherManagement').classList.add('hidden');
 
             document.getElementById('editTeacherId').value = teacher.id;
             document.getElementById('editTeacherNIP').value = teacher.nip;
@@ -1625,6 +2006,7 @@
 
         function hideEditTeacher() {
             document.getElementById('editTeacherForm').classList.add('hidden');
+            document.getElementById('teacherManagement').classList.remove('hidden');
         }
 
         function resetTeacherForm() {
@@ -2448,6 +2830,400 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }
+
+        // Subject Management Functions
+        function showSubjectManagement() {
+            document.getElementById('subjectManagement').classList.remove('hidden');
+            renderSubjectTable();
+        }
+
+        function hideSubjectManagement() {
+            document.getElementById('subjectManagement').classList.add('hidden');
+            document.getElementById('addSubjectForm').classList.add('hidden');
+            document.getElementById('editSubjectForm').classList.add('hidden');
+        }
+
+        function showAddSubject() {
+            document.getElementById('subjectManagement').classList.add('hidden');
+            document.getElementById('addSubjectForm').classList.remove('hidden');
+        }
+
+        function hideAddSubject() {
+            document.getElementById('addSubjectForm').classList.add('hidden');
+            document.getElementById('subjectManagement').classList.remove('hidden');
+            resetSubjectForm();
+        }
+
+        function showEditSubject(subjectId) {
+            const subject = subjectData.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            // Hide subject management table
+            document.getElementById('subjectManagement').classList.add('hidden');
+
+            document.getElementById('editSubjectId').value = subject.id;
+            document.getElementById('editSubjectCode').value = subject.code;
+            document.getElementById('editSubjectName').value = subject.name;
+            document.getElementById('editSubjectCategory').value = subject.category;
+            document.getElementById('editSubjectDescription').value = subject.description || '';
+
+            // Set checkboxes for classes
+            const checkboxes = document.querySelectorAll('.edit-subject-class-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = subject.classes.includes(checkbox.value);
+            });
+
+            document.getElementById('editSubjectForm').classList.remove('hidden');
+        }
+
+        function hideEditSubject() {
+            document.getElementById('editSubjectForm').classList.add('hidden');
+            document.getElementById('subjectManagement').classList.remove('hidden');
+        }
+
+        function resetSubjectForm() {
+            document.getElementById('subjectCode').value = '';
+            document.getElementById('subjectName').value = '';
+            document.getElementById('subjectCategory').value = '';
+            document.getElementById('subjectDescription').value = '';
+            
+            // Reset checkboxes
+            const checkboxes = document.querySelectorAll('.subject-class-checkbox');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+        }
+
+        function addSubject(event) {
+            event.preventDefault();
+
+            const code = document.getElementById('subjectCode').value;
+
+            // Check if code already exists
+            if (subjectData.some(subject => subject.code === code)) {
+                alert('Kode mata pelajaran sudah ada! Silakan gunakan kode yang berbeda.');
+                return;
+            }
+
+            // Get selected classes
+            const selectedClasses = [];
+            const checkboxes = document.querySelectorAll('.subject-class-checkbox:checked');
+            checkboxes.forEach(checkbox => {
+                selectedClasses.push(checkbox.value);
+            });
+
+            if (selectedClasses.length === 0) {
+                alert('Silakan pilih minimal satu kelas!');
+                return;
+            }
+
+            const newSubject = {
+                id: Date.now(),
+                code: code,
+                name: document.getElementById('subjectName').value,
+                category: document.getElementById('subjectCategory').value,
+                classes: selectedClasses,
+                description: document.getElementById('subjectDescription').value,
+                status: 'active',
+                createdAt: new Date().toISOString()
+            };
+
+            subjectData.push(newSubject);
+            localStorage.setItem('subjectData', JSON.stringify(subjectData));
+
+            alert('Mata pelajaran berhasil ditambahkan!');
+            hideAddSubject();
+            renderSubjectTable();
+        }
+
+        function updateSubject(event) {
+            event.preventDefault();
+
+            const subjectId = parseInt(document.getElementById('editSubjectId').value);
+            const subjectIndex = subjectData.findIndex(s => s.id === subjectId);
+            
+            if (subjectIndex === -1) {
+                alert('Data mata pelajaran tidak ditemukan!');
+                return;
+            }
+
+            const code = document.getElementById('editSubjectCode').value;
+            
+            // Check if code already exists (excluding current subject)
+            if (subjectData.some(subject => subject.code === code && subject.id !== subjectId)) {
+                alert('Kode mata pelajaran sudah ada! Silakan gunakan kode yang berbeda.');
+                return;
+            }
+
+            // Get selected classes
+            const selectedClasses = [];
+            const checkboxes = document.querySelectorAll('.edit-subject-class-checkbox:checked');
+            checkboxes.forEach(checkbox => {
+                selectedClasses.push(checkbox.value);
+            });
+
+            if (selectedClasses.length === 0) {
+                alert('Silakan pilih minimal satu kelas!');
+                return;
+            }
+
+            // Update subject data
+            subjectData[subjectIndex].code = code;
+            subjectData[subjectIndex].name = document.getElementById('editSubjectName').value;
+            subjectData[subjectIndex].category = document.getElementById('editSubjectCategory').value;
+            subjectData[subjectIndex].classes = selectedClasses;
+            subjectData[subjectIndex].description = document.getElementById('editSubjectDescription').value;
+
+            localStorage.setItem('subjectData', JSON.stringify(subjectData));
+
+            alert('Data mata pelajaran berhasil diperbarui!');
+            hideEditSubject();
+            renderSubjectTable();
+        }
+
+        function deleteSubject(subjectId) {
+            if (confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')) {
+                subjectData = subjectData.filter(s => s.id !== subjectId);
+                localStorage.setItem('subjectData', JSON.stringify(subjectData));
+                renderSubjectTable();
+                alert('Mata pelajaran berhasil dihapus!');
+            }
+        }
+
+        function toggleSubjectStatus(subjectId) {
+            const subject = subjectData.find(s => s.id === subjectId);
+            if (subject) {
+                subject.status = subject.status === 'active' ? 'inactive' : 'active';
+                localStorage.setItem('subjectData', JSON.stringify(subjectData));
+                renderSubjectTable();
+            }
+        }
+
+        function renderSubjectTable() {
+            const tbody = document.getElementById('subjectTable');
+            tbody.innerHTML = '';
+
+            if (subjectData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            <div class="flex flex-col items-center space-y-2">
+                                <span class="text-4xl">📚</span>
+                                <span>Belum ada mata pelajaran</span>
+                                <span class="text-sm">Klik "Tambah Mata Pelajaran" untuk menambah data</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                subjectData.forEach(subject => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+
+                    const classesText = subject.classes.length > 2 ? 
+                        `${subject.classes.slice(0, 2).join(', ')} +${subject.classes.length - 2}` : 
+                        subject.classes.join(', ');
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${subject.code}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${subject.name}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${subject.category}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900" title="${subject.classes.join(', ')}">${classesText}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${subject.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${subject.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <button onclick="showEditSubject(${subject.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-3">
+                                Edit
+                            </button>
+                            <button onclick="toggleSubjectStatus(${subject.id})" class="text-yellow-600 hover:text-yellow-800 text-sm mr-3">
+                                ${subject.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
+                            </button>
+                            <button onclick="deleteSubject(${subject.id})" class="text-red-600 hover:text-red-800 text-sm">
+                                Hapus
+                            </button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        // Manual Attendance Functions
+        function showManualAttendance() {
+            document.getElementById('manualAttendanceForm').classList.remove('hidden');
+            
+            // Set today's date and current time as default
+            const now = new Date();
+            document.getElementById('manualDate').value = now.toISOString().split('T')[0];
+            document.getElementById('manualTime').value = now.toTimeString().slice(0, 5);
+        }
+
+        function hideManualAttendance() {
+            document.getElementById('manualAttendanceForm').classList.add('hidden');
+            resetManualAttendanceForm();
+        }
+
+        function toggleManualSiswaFields() {
+            const role = document.getElementById('manualRole').value;
+            const siswaFields = document.getElementById('manualSiswaFields');
+            const kelasField = document.getElementById('manualKelas');
+            const jurusanField = document.getElementById('manualJurusan');
+            const nameSelect = document.getElementById('manualName');
+            const nameInput = document.getElementById('manualNameInput');
+            const idNumberField = document.getElementById('manualIdNumber');
+            
+            // Reset fields
+            nameSelect.innerHTML = '<option value="">Pilih Nama</option>';
+            nameInput.value = '';
+            idNumberField.value = '';
+            
+            if (role === 'siswa') {
+                siswaFields.classList.remove('hidden');
+                kelasField.required = true;
+                jurusanField.required = true;
+                
+                // Show input field for siswa
+                nameSelect.classList.add('hidden');
+                nameInput.classList.remove('hidden');
+                nameSelect.required = false;
+                nameInput.required = true;
+            } else if (role === 'guru') {
+                siswaFields.classList.add('hidden');
+                kelasField.required = false;
+                jurusanField.required = false;
+                kelasField.value = '';
+                jurusanField.value = '';
+                
+                // Show dropdown for guru and populate with teacher data
+                nameSelect.classList.remove('hidden');
+                nameInput.classList.add('hidden');
+                nameSelect.required = true;
+                nameInput.required = false;
+                
+                // Populate teacher dropdown
+                teacherData.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.name;
+                    option.textContent = teacher.name;
+                    option.dataset.nip = teacher.nip;
+                    nameSelect.appendChild(option);
+                });
+            } else {
+                // For karyawan
+                siswaFields.classList.add('hidden');
+                kelasField.required = false;
+                jurusanField.required = false;
+                kelasField.value = '';
+                jurusanField.value = '';
+                
+                // Show input field for karyawan
+                nameSelect.classList.add('hidden');
+                nameInput.classList.remove('hidden');
+                nameSelect.required = false;
+                nameInput.required = true;
+            }
+        }
+
+        function fillTeacherData() {
+            const nameSelect = document.getElementById('manualName');
+            const selectedOption = nameSelect.options[nameSelect.selectedIndex];
+            const idNumberField = document.getElementById('manualIdNumber');
+            
+            if (selectedOption && selectedOption.dataset.nip) {
+                idNumberField.value = selectedOption.dataset.nip;
+            } else {
+                idNumberField.value = '';
+            }
+        }
+
+        function resetManualAttendanceForm() {
+            document.getElementById('manualRole').value = '';
+            document.getElementById('manualName').innerHTML = '<option value="">Pilih Nama</option>';
+            document.getElementById('manualNameInput').value = '';
+            document.getElementById('manualIdNumber').value = '';
+            document.getElementById('manualKelas').value = '';
+            document.getElementById('manualJurusan').value = '';
+            document.getElementById('manualAttendanceType').value = '';
+            document.getElementById('manualStatus').value = '';
+            document.getElementById('manualDate').value = '';
+            document.getElementById('manualTime').value = '';
+            document.getElementById('manualLocation').value = '';
+            document.getElementById('manualKeterangan').value = '';
+            
+            // Hide siswa fields
+            document.getElementById('manualSiswaFields').classList.add('hidden');
+            document.getElementById('manualKelas').required = false;
+            document.getElementById('manualJurusan').required = false;
+            
+            // Reset name field visibility
+            document.getElementById('manualName').classList.add('hidden');
+            document.getElementById('manualNameInput').classList.add('hidden');
+            document.getElementById('manualName').required = false;
+            document.getElementById('manualNameInput').required = false;
+        }
+
+        function addManualAttendance(event) {
+            event.preventDefault();
+
+            const role = document.getElementById('manualRole').value;
+            const date = document.getElementById('manualDate').value;
+            const time = document.getElementById('manualTime').value;
+            
+            // Get name based on role
+            let name = '';
+            if (role === 'guru') {
+                name = document.getElementById('manualName').value;
+            } else {
+                name = document.getElementById('manualNameInput').value;
+            }
+            
+            // Create timestamp from date and time
+            const timestamp = new Date(`${date}T${time}`).toISOString();
+            
+            const formData = {
+                id: Date.now(),
+                timestamp: timestamp,
+                role: role,
+                attendanceType: document.getElementById('manualAttendanceType').value,
+                status: document.getElementById('manualStatus').value,
+                name: name,
+                idNumber: document.getElementById('manualIdNumber').value,
+                kelas: role === 'siswa' ? document.getElementById('manualKelas').value : '',
+                jurusan: role === 'siswa' ? document.getElementById('manualJurusan').value : '',
+                photo: null, // No photo for manual entry
+                location: document.getElementById('manualLocation').value,
+                date: date,
+                keterangan: document.getElementById('manualKeterangan').value,
+                isManualEntry: true, // Flag to identify manual entries
+                enteredBy: 'Admin'
+            };
+
+            // Load existing data, add new entry, and save back
+            let existingData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            existingData.push(formData);
+            localStorage.setItem('attendanceData', JSON.stringify(existingData));
+            
+            // Update global variable
+            attendanceData = existingData;
+
+            // Show success message
+            const attendanceTypeText = formData.attendanceType === 'masuk' ? 'MASUK' : 'PULANG';
+            let successMsg = `✅ Absensi manual berhasil disimpan!\n\nDetail:\n- Nama: ${formData.name}\n- Role: ${formData.role.toUpperCase()}\n- Jenis: ${attendanceTypeText}\n- Status: ${formData.status}\n- Tanggal: ${new Date(formData.timestamp).toLocaleDateString('id-ID')}\n- Waktu: ${new Date(formData.timestamp).toLocaleTimeString('id-ID')}\n- Lokasi: ${formData.location}`;
+            
+            if (formData.keterangan) {
+                successMsg += `\n- Keterangan: ${formData.keterangan}`;
+            }
+            
+            alert(successMsg);
+
+            hideManualAttendance();
+            
+            // Update stats and table
+            updateStats();
+            renderAttendanceTable();
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f760354e4601c',t:'MTc1ODg1NTEwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f8b699783273f',t:'MTc1ODg1NTk3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
