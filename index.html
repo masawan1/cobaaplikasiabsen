@@ -391,8 +391,8 @@
                         <div id="locationGuide" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                             <h4 class="font-medium text-blue-900 mb-2">📍 Validasi Lokasi Absensi:</h4>
                             <div class="text-sm text-blue-800 space-y-1">
-                                <p><strong>• Lokasi Wajib:</strong> ${locationSettings.schoolName}</p>
-                                <p><strong>• Radius Valid:</strong> ${locationSettings.validationRadius || 200} meter dari sekolah</p>
+                                <p><strong>• Lokasi Wajib:</strong> <span id="locationGuideName">SMK Muhammadiyah Bojong</span></p>
+                                <p><strong>• Radius Valid:</strong> <span id="locationGuideRadius">200</span> meter dari sekolah</p>
                                 <p>1. Klik "Dapatkan Lokasi" untuk menggunakan GPS</p>
                                 <p>2. Pastikan Anda berada di area sekolah</p>
                                 <p>3. Jika GPS gagal, gunakan "Input Manual" dengan lokasi yang valid</p>
@@ -1518,6 +1518,9 @@
             examResults = JSON.parse(localStorage.getItem('examResults')) || [];
             teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
             
+            // Update location guide with current settings
+            updateLocationGuide();
+            
             updateStats();
             renderAttendanceTable();
             
@@ -1675,6 +1678,9 @@
                 document.getElementById('siswaFields').classList.add('hidden');
                 document.getElementById('kelas').required = false;
                 document.getElementById('jurusan').required = false;
+                
+                // Update location guide with current settings
+                updateLocationGuide();
                 
                 // Clear login form
                 document.getElementById('teacherLoginUsername').value = '';
@@ -2093,6 +2099,9 @@
             locationSettings = newSettings;
             localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
 
+            // Update location guide if attendance form is visible
+            updateLocationGuide();
+
             alert('Setting lokasi berhasil disimpan!\n\nSekarang semua absensi akan divalidasi berdasarkan lokasi yang telah ditentukan.');
             hideLocationSettings();
         }
@@ -2361,7 +2370,22 @@
                 document.getElementById('jurusan').required = false;
             }
             
+            // Update location guide with current settings
+            updateLocationGuide();
+            
             resetForm();
+        }
+
+        function updateLocationGuide() {
+            const nameEl = document.getElementById('locationGuideName');
+            const radiusEl = document.getElementById('locationGuideRadius');
+            
+            if (nameEl) {
+                nameEl.textContent = locationSettings.schoolName || 'SMK Muhammadiyah Bojong';
+            }
+            if (radiusEl) {
+                radiusEl.textContent = locationSettings.validationRadius || 200;
+            }
         }
 
         function resetForm() {
@@ -3566,5 +3590,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984ff0070553cded',t:'MTc1ODg2MDEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984ff5e483b9c63b',t:'MTc1ODg2MDM0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
