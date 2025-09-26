@@ -553,6 +553,10 @@
                             <span>📊</span>
                             <span>Export Excel</span>
                         </button>
+                        <button onclick="exportRecapToExcel()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                            <span>📋</span>
+                            <span>Rekap Absensi</span>
+                        </button>
                     </div>
                 </div>
 
@@ -2819,6 +2823,141 @@
             downloadFile(html, 'absensi.xls', 'application/vnd.ms-excel');
         }
 
+        function exportRecapToExcel() {
+            const data = getFilteredData();
+            if (data.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+            
+            // Get filter values for header
+            const roleFilter = document.getElementById('filterRole').value || 'Semua';
+            const dateFromFilter = document.getElementById('filterDateFrom').value || '2025-01-01';
+            const dateToFilter = document.getElementById('filterDateTo').value || new Date().toISOString().split('T')[0];
+            
+            // Group data by person
+            const recap = {};
+            
+            data.forEach(item => {
+                const key = `${item.name}_${item.idNumber}`;
+                if (!recap[key]) {
+                    recap[key] = {
+                        name: item.name,
+                        idNumber: item.idNumber,
+                        role: item.role,
+                        kelas: item.kelas || '-',
+                        jurusan: item.jurusan || '-',
+                        telat: 0,
+                        sakit: 0,
+                        izin: 0,
+                        alpha: 0,
+                        totalHadir: 0,
+                        attendanceDays: new Set()
+                    };
+                }
+                
+                // Count attendance types
+                if (item.attendanceType === 'masuk') {
+                    recap[key].attendanceDays.add(item.date);
+                    
+                    if (item.status === 'TERLAMBAT') {
+                        recap[key].telat++;
+                    } else if (item.status === 'TEPAT WAKTU') {
+                        recap[key].totalHadir++;
+                    }
+                }
+                
+                // Count manual entries by status
+                if (item.isManualEntry) {
+                    switch(item.status) {
+                        case 'SAKIT':
+                            recap[key].sakit++;
+                            break;
+                        case 'IZIN':
+                            recap[key].izin++;
+                            break;
+                        case 'ALPHA':
+                            recap[key].alpha++;
+                            break;
+                        case 'HADIR':
+                            recap[key].totalHadir++;
+                            break;
+                    }
+                }
+            });
+            
+            // Convert Set to count for total attendance days
+            Object.values(recap).forEach(person => {
+                person.totalHadirHari = person.attendanceDays.size;
+                delete person.attendanceDays;
+            });
+            
+            let html = `
+                <table border="1" style="border-collapse: collapse;">
+                    <tr>
+                        <td colspan="8" style="font-weight: bold; font-size: 16px; text-align: center; padding: 10px;">
+                            Rekap Absensi
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; padding: 5px;">Kelas</td>
+                        <td colspan="7" style="padding: 5px;">${roleFilter === 'Semua' ? 'Semua Role' : roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; padding: 5px;">Periode</td>
+                        <td colspan="7" style="padding: 5px;">${dateFromFilter} sampai ${dateToFilter}</td>
+                    </tr>
+                    <tr style="background-color: #f0f0f0;">
+                        <th style="padding: 8px; text-align: center;">No</th>
+                        <th style="padding: 8px; text-align: center;">Nama</th>
+                        <th style="padding: 8px; text-align: center;">NIP/NIS</th>
+                        <th style="padding: 8px; text-align: center;">Telat</th>
+                        <th style="padding: 8px; text-align: center;">Sakit</th>
+                        <th style="padding: 8px; text-align: center;">Izin</th>
+                        <th style="padding: 8px; text-align: center;">Alpha</th>
+                        <th style="padding: 8px; text-align: center;">Total Hadir (Hari)</th>
+                    </tr>
+            `;
+            
+            const recapArray = Object.values(recap);
+            recapArray.forEach((person, index) => {
+                html += `
+                    <tr>
+                        <td style="padding: 5px; text-align: center;">${index + 1}</td>
+                        <td style="padding: 5px;">${person.name}</td>
+                        <td style="padding: 5px; text-align: center;">${person.idNumber}</td>
+                        <td style="padding: 5px; text-align: center;">${person.telat}</td>
+                        <td style="padding: 5px; text-align: center;">${person.sakit}</td>
+                        <td style="padding: 5px; text-align: center;">${person.izin}</td>
+                        <td style="padding: 5px; text-align: center;">${person.alpha}</td>
+                        <td style="padding: 5px; text-align: center;">${person.totalHadirHari}</td>
+                    </tr>
+                `;
+            });
+            
+            // Add summary row
+            const totalTelat = recapArray.reduce((sum, p) => sum + p.telat, 0);
+            const totalSakit = recapArray.reduce((sum, p) => sum + p.sakit, 0);
+            const totalIzin = recapArray.reduce((sum, p) => sum + p.izin, 0);
+            const totalAlpha = recapArray.reduce((sum, p) => sum + p.alpha, 0);
+            const totalHadirHari = recapArray.reduce((sum, p) => sum + p.totalHadirHari, 0);
+            
+            html += `
+                    <tr style="background-color: #e0e0e0; font-weight: bold;">
+                        <td colspan="3" style="padding: 8px; text-align: center;">TOTAL</td>
+                        <td style="padding: 8px; text-align: center;">${totalTelat}</td>
+                        <td style="padding: 8px; text-align: center;">${totalSakit}</td>
+                        <td style="padding: 8px; text-align: center;">${totalIzin}</td>
+                        <td style="padding: 8px; text-align: center;">${totalAlpha}</td>
+                        <td style="padding: 8px; text-align: center;">${totalHadirHari}</td>
+                    </tr>
+                </table>
+            `;
+            
+            const filename = `rekap-absensi-${dateFromFilter}-${dateToFilter}.xls`;
+            downloadFile(html, filename, 'application/vnd.ms-excel');
+        }
+
         function downloadFile(content, filename, mimeType) {
             const blob = new Blob([content], { type: mimeType });
             const url = window.URL.createObjectURL(blob);
@@ -3225,5 +3364,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f8b699783273f',t:'MTc1ODg1NTk3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984fa3cc9074cb36',t:'MTc1ODg1Njk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
