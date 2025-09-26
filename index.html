@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Sekolah</title>
+    <title>Sistem Sekolah Digital - SMK Teknologi Maju</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -23,6 +23,13 @@
             0% { transform: scale(0.33); }
             80%, 100% { opacity: 0; }
         }
+        .timer-warning {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -32,10 +39,10 @@
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <span class="text-white font-bold text-lg">📚</span>
+                        <span class="text-white font-bold text-lg">🏫</span>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Sistem Absensi</h1>
+                        <h1 class="text-2xl font-bold text-gray-900">Sistem Sekolah Digital</h1>
                         <p class="text-sm text-gray-600">SMK Teknologi Maju</p>
                     </div>
                 </div>
@@ -77,11 +84,35 @@
             </div>
         </div>
 
-        <!-- Public Attendance Section -->
+        <!-- Public Section -->
         <div id="publicSection" class="space-y-8">
-            <!-- Role Selection -->
+            <!-- Main Menu -->
             <div class="bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Pilih Jenis Absensi</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Pilih Layanan</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <button onclick="showAttendanceMenu()" class="service-card bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-8 rounded-xl transition-all transform hover:scale-105">
+                        <div class="text-5xl mb-4">📝</div>
+                        <h3 class="text-2xl font-bold mb-3">Sistem Absensi</h3>
+                        <p class="text-green-100">Absensi untuk guru, karyawan, dan siswa</p>
+                    </button>
+                    <button onclick="showExamMenu()" class="service-card bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-8 rounded-xl transition-all transform hover:scale-105">
+                        <div class="text-5xl mb-4">📚</div>
+                        <h3 class="text-2xl font-bold mb-3">Ujian Online</h3>
+                        <p class="text-purple-100">Sistem ujian digital untuk siswa</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Attendance Menu -->
+            <div id="attendanceMenu" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Pilih Jenis Absensi</h2>
+                    <button onclick="backToMainMenu()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
                 <div class="grid md:grid-cols-3 gap-6">
                     <button onclick="selectRole('guru')" class="role-card bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
                         <div class="text-4xl mb-3">👨‍🏫</div>
@@ -101,11 +132,135 @@
                 </div>
             </div>
 
-            <!-- Attendance Form -->
+            <!-- Exam Menu -->
+            <div id="examMenu" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Ujian Online</h2>
+                    <button onclick="backToMainMenu()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Student Login for Exam -->
+                <div class="max-w-md mx-auto">
+                    <form onsubmit="handleStudentLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">NIS Siswa</label>
+                            <input type="text" id="studentNIS" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Masukkan NIS" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                            <input type="text" id="studentName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Masukkan nama lengkap" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Kelas</label>
+                            <select id="studentClass" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" required>
+                                <option value="">Pilih Kelas</option>
+                                <option value="X RPL 1">X RPL 1</option>
+                                <option value="X RPL 2">X RPL 2</option>
+                                <option value="XI RPL 1">XI RPL 1</option>
+                                <option value="XI RPL 2">XI RPL 2</option>
+                                <option value="XII RPL 1">XII RPL 1</option>
+                                <option value="XII RPL 2">XII RPL 2</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">
+                            Masuk ke Ujian
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Available Exams -->
+            <div id="examList" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Ujian Tersedia</h2>
+                        <p class="text-gray-600">Selamat datang, <span id="welcomeStudent"></span></p>
+                    </div>
+                    <button onclick="logoutStudent()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6" id="examCards">
+                    <!-- Exam cards will be populated here -->
+                </div>
+            </div>
+
+            <!-- Exam Interface -->
+            <div id="examInterface" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" id="examTitle"></h2>
+                        <p class="text-gray-600" id="examInfo"></p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-red-600" id="examTimer">00:00</div>
+                        <p class="text-sm text-gray-600">Waktu tersisa</p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2">Soal <span id="currentQuestion">1</span> dari <span id="totalQuestions">10</span></p>
+                </div>
+                
+                <div id="questionContainer" class="mb-8">
+                    <!-- Questions will be populated here -->
+                </div>
+                
+                <div class="flex justify-between">
+                    <button onclick="previousQuestion()" id="prevBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 rounded-lg transition-colors disabled:opacity-50" disabled>
+                        ← Sebelumnya
+                    </button>
+                    <button onclick="nextQuestion()" id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                        Selanjutnya →
+                    </button>
+                    <button onclick="finishExam()" id="finishBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors hidden">
+                        Selesai Ujian
+                    </button>
+                </div>
+            </div>
+
+            <!-- Exam Result -->
+            <div id="examResult" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Ujian Selesai!</h2>
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="grid md:grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-2xl font-bold text-blue-600" id="finalScore">0</p>
+                                <p class="text-gray-600">Nilai</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-green-600" id="correctAnswers">0</p>
+                                <p class="text-gray-600">Benar</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-red-600" id="wrongAnswers">0</p>
+                                <p class="text-gray-600">Salah</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="backToExamList()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors">
+                        Kembali ke Daftar Ujian
+                    </button>
+                </div>
+            </div>
+
+            <!-- Attendance Form (existing code) -->
             <div id="attendanceForm" class="bg-white rounded-xl shadow-lg p-8 hidden">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">Absensi <span id="selectedRoleTitle"></span></h2>
-                    <button onclick="backToRoleSelection()" class="text-gray-500 hover:text-gray-700">
+                    <button onclick="backToAttendanceMenu()" class="text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -219,7 +374,7 @@
                     </div>
 
                     <div class="flex space-x-4">
-                        <button type="button" onclick="backToRoleSelection()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                        <button type="button" onclick="backToAttendanceMenu()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
                             Kembali
                         </button>
                         <button type="submit" id="submitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors disabled:bg-gray-400" disabled>
@@ -234,13 +389,18 @@
         <div id="adminDashboard" class="hidden space-y-8">
             <div class="flex justify-between items-center">
                 <h2 class="text-3xl font-bold text-gray-900">Dashboard Admin</h2>
-                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    Logout
-                </button>
+                <div class="flex space-x-4">
+                    <button onclick="showAdminExams()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Kelola Ujian
+                    </button>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid md:grid-cols-4 gap-6">
+            <div class="grid md:grid-cols-5 gap-6">
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -277,13 +437,29 @@
                         <div class="text-4xl">👨‍🎓</div>
                     </div>
                 </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Ujian Aktif</p>
+                            <p class="text-3xl font-bold text-orange-600" id="activeExams">0</p>
+                        </div>
+                        <div class="text-4xl">📝</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Filter and Export -->
+            <!-- Attendance Data Table (existing) -->
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-900">Data Absensi</h3>
+                    <div class="flex items-center space-x-4">
+                        <h3 class="text-xl font-bold text-gray-900">Data Absensi</h3>
+                        <span class="text-sm text-gray-500" id="lastUpdate">Terakhir diperbarui: -</span>
+                    </div>
                     <div class="flex flex-wrap items-center space-x-4">
+                        <button onclick="refreshData()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                            <span>🔄</span>
+                            <span>Refresh</span>
+                        </button>
                         <select id="filterRole" onchange="filterData()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option value="">Semua Role</option>
                             <option value="guru">Guru</option>
@@ -302,7 +478,6 @@
                     </div>
                 </div>
 
-                <!-- Data Table -->
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
                         <thead>
@@ -322,6 +497,97 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Exam Management -->
+            <div id="examManagement" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Kelola Ujian</h3>
+                    <div class="flex space-x-4">
+                        <button onclick="showCreateExam()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            Buat Ujian Baru
+                        </button>
+                        <button onclick="hideAdminExams()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                            Kembali
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Durasi</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Soal</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="examManagementTable" class="divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Create Exam Form -->
+            <div id="createExamForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Buat Ujian Baru</h3>
+                    <button onclick="hideCreateExam()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form onsubmit="createExam(event)" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Mata Pelajaran</label>
+                            <input type="text" id="examSubject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Contoh: Matematika" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Kelas</label>
+                            <select id="examClass" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" required>
+                                <option value="">Pilih Kelas</option>
+                                <option value="X RPL 1">X RPL 1</option>
+                                <option value="X RPL 2">X RPL 2</option>
+                                <option value="XI RPL 1">XI RPL 1</option>
+                                <option value="XI RPL 2">XI RPL 2</option>
+                                <option value="XII RPL 1">XII RPL 1</option>
+                                <option value="XII RPL 2">XII RPL 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Durasi (menit)</label>
+                            <input type="number" id="examDuration" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="60" min="1" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Jumlah Soal</label>
+                            <input type="number" id="examQuestionCount" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="10" min="1" max="50" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Deskripsi</label>
+                        <textarea id="examDescription" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" rows="3" placeholder="Deskripsi ujian..."></textarea>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="hideCreateExam()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">
+                            Buat Ujian
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </main>
 
@@ -329,19 +595,110 @@
         // Global variables
         let currentRole = '';
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let examData = JSON.parse(localStorage.getItem('examData')) || [];
+        let examResults = JSON.parse(localStorage.getItem('examResults')) || [];
         let currentStream = null;
         let hasPhoto = false;
         let hasLocation = false;
+        
+        // Exam variables
+        let currentStudent = null;
+        let currentExam = null;
+        let currentQuestionIndex = 0;
+        let studentAnswers = [];
+        let examTimer = null;
+        let examTimeLeft = 0;
+
+        // Sample exam data
+        if (examData.length === 0) {
+            examData = [
+                {
+                    id: 1,
+                    subject: 'Matematika',
+                    class: 'X RPL 1',
+                    duration: 60,
+                    description: 'Ujian Matematika Semester 1',
+                    status: 'active',
+                    questions: [
+                        {
+                            question: 'Berapakah hasil dari 2 + 2?',
+                            options: ['3', '4', '5', '6'],
+                            correct: 1
+                        },
+                        {
+                            question: 'Berapakah hasil dari 5 × 3?',
+                            options: ['12', '15', '18', '20'],
+                            correct: 1
+                        },
+                        {
+                            question: 'Berapakah hasil dari 10 ÷ 2?',
+                            options: ['3', '4', '5', '6'],
+                            correct: 2
+                        },
+                        {
+                            question: 'Berapakah hasil dari 8 - 3?',
+                            options: ['4', '5', '6', '7'],
+                            correct: 1
+                        },
+                        {
+                            question: 'Berapakah hasil dari 3²?',
+                            options: ['6', '8', '9', '12'],
+                            correct: 2
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    subject: 'Bahasa Indonesia',
+                    class: 'XI RPL 1',
+                    duration: 45,
+                    description: 'Ujian Bahasa Indonesia - Teks Eksposisi',
+                    status: 'active',
+                    questions: [
+                        {
+                            question: 'Apa yang dimaksud dengan teks eksposisi?',
+                            options: ['Teks yang berisi cerita', 'Teks yang berisi informasi', 'Teks yang berisi puisi', 'Teks yang berisi dialog'],
+                            correct: 1
+                        },
+                        {
+                            question: 'Struktur teks eksposisi terdiri dari?',
+                            options: ['Orientasi-Komplikasi-Resolusi', 'Tesis-Argumentasi-Penegasan', 'Pembuka-Isi-Penutup', 'Judul-Isi-Kesimpulan'],
+                            correct: 1
+                        }
+                    ]
+                }
+            ];
+            localStorage.setItem('examData', JSON.stringify(examData));
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             updateTime();
             setInterval(updateTime, 1000);
+            
+            // Load data from localStorage on page load
+            attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            examData = JSON.parse(localStorage.getItem('examData')) || [];
+            examResults = JSON.parse(localStorage.getItem('examResults')) || [];
+            
             updateStats();
             renderAttendanceTable();
             
             // Set today's date as default filter
             document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+            
+            // Auto-refresh data every 30 seconds if admin is logged in
+            setInterval(() => {
+                if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
+                    // Reload data from localStorage
+                    attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+                    examData = JSON.parse(localStorage.getItem('examData')) || [];
+                    examResults = JSON.parse(localStorage.getItem('examResults')) || [];
+                    
+                    updateStats();
+                    renderAttendanceTable();
+                }
+            }, 30000); // Refresh every 30 seconds
         });
 
         function updateTime() {
@@ -358,6 +715,7 @@
             document.getElementById('currentTime').textContent = timeString;
         }
 
+        // Navigation functions
         function showLogin() {
             document.getElementById('loginModal').classList.remove('hidden');
         }
@@ -366,6 +724,39 @@
             document.getElementById('loginModal').classList.add('hidden');
         }
 
+        function showAttendanceMenu() {
+            document.querySelector('.grid.md\\:grid-cols-2').parentElement.classList.add('hidden');
+            document.getElementById('attendanceMenu').classList.remove('hidden');
+        }
+
+        function showExamMenu() {
+            document.querySelector('.grid.md\\:grid-cols-2').parentElement.classList.add('hidden');
+            document.getElementById('examMenu').classList.remove('hidden');
+        }
+
+        function backToMainMenu() {
+            // Hide all sections
+            document.getElementById('attendanceMenu').classList.add('hidden');
+            document.getElementById('examMenu').classList.add('hidden');
+            document.getElementById('examList').classList.add('hidden');
+            document.getElementById('attendanceForm').classList.add('hidden');
+            
+            // Show main menu
+            document.querySelector('.grid.md\\:grid-cols-2').parentElement.classList.remove('hidden');
+            
+            // Reset forms
+            resetForm();
+            currentStudent = null;
+        }
+
+        function backToAttendanceMenu() {
+            document.getElementById('attendanceForm').classList.add('hidden');
+            document.getElementById('attendanceMenu').classList.remove('hidden');
+            stopCamera();
+            resetForm();
+        }
+
+        // Login functions
         function handleLogin(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;
@@ -375,8 +766,26 @@
                 hideLogin();
                 document.getElementById('publicSection').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
+                
+                // Reload all data from localStorage to ensure fresh data
+                attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+                examData = JSON.parse(localStorage.getItem('examData')) || [];
+                examResults = JSON.parse(localStorage.getItem('examResults')) || [];
+                
+                // Update dashboard
                 updateStats();
                 renderAttendanceTable();
+                renderExamManagementTable();
+                
+                // Clear login form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                
+                console.log('Admin logged in. Data loaded:', {
+                    attendance: attendanceData.length,
+                    exams: examData.length,
+                    results: examResults.length
+                });
             } else {
                 alert('Username atau password salah!');
             }
@@ -385,13 +794,353 @@
         function logout() {
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('publicSection').classList.remove('hidden');
-            backToRoleSelection();
+            document.getElementById('examManagement').classList.add('hidden');
+            document.getElementById('createExamForm').classList.add('hidden');
+            backToMainMenu();
         }
 
+        // Student exam login
+        function handleStudentLogin(event) {
+            event.preventDefault();
+            const nis = document.getElementById('studentNIS').value;
+            const name = document.getElementById('studentName').value;
+            const studentClass = document.getElementById('studentClass').value;
+            
+            currentStudent = {
+                nis: nis,
+                name: name,
+                class: studentClass
+            };
+            
+            document.getElementById('examMenu').classList.add('hidden');
+            document.getElementById('examList').classList.remove('hidden');
+            document.getElementById('welcomeStudent').textContent = name;
+            
+            renderExamList();
+        }
+
+        function logoutStudent() {
+            currentStudent = null;
+            document.getElementById('examList').classList.add('hidden');
+            document.getElementById('examMenu').classList.remove('hidden');
+            
+            // Reset form
+            document.getElementById('studentNIS').value = '';
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentClass').value = '';
+        }
+
+        // Exam functions
+        function renderExamList() {
+            const container = document.getElementById('examCards');
+            const availableExams = examData.filter(exam => 
+                exam.status === 'active' && 
+                (exam.class === currentStudent.class || exam.class === 'Semua Kelas')
+            );
+            
+            container.innerHTML = '';
+            
+            availableExams.forEach(exam => {
+                const card = document.createElement('div');
+                card.className = 'bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl cursor-pointer hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105';
+                card.onclick = () => startExam(exam.id);
+                
+                card.innerHTML = `
+                    <div class="text-3xl mb-3">📝</div>
+                    <h3 class="text-xl font-bold mb-2">${exam.subject}</h3>
+                    <p class="text-purple-100 mb-4">${exam.description}</p>
+                    <div class="flex justify-between text-sm text-purple-200">
+                        <span>⏱️ ${exam.duration} menit</span>
+                        <span>📋 ${exam.questions.length} soal</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            if (availableExams.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-gray-500 py-8">Tidak ada ujian tersedia untuk kelas Anda</div>';
+            }
+        }
+
+        function startExam(examId) {
+            currentExam = examData.find(exam => exam.id === examId);
+            if (!currentExam) return;
+            
+            currentQuestionIndex = 0;
+            studentAnswers = new Array(currentExam.questions.length).fill(null);
+            examTimeLeft = currentExam.duration * 60; // Convert to seconds
+            
+            document.getElementById('examList').classList.add('hidden');
+            document.getElementById('examInterface').classList.remove('hidden');
+            
+            document.getElementById('examTitle').textContent = currentExam.subject;
+            document.getElementById('examInfo').textContent = `${currentExam.description} - ${currentExam.questions.length} soal`;
+            document.getElementById('totalQuestions').textContent = currentExam.questions.length;
+            
+            startExamTimer();
+            showQuestion();
+        }
+
+        function startExamTimer() {
+            examTimer = setInterval(() => {
+                examTimeLeft--;
+                updateTimerDisplay();
+                
+                if (examTimeLeft <= 0) {
+                    clearInterval(examTimer);
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(examTimeLeft / 60);
+            const seconds = examTimeLeft % 60;
+            const timerElement = document.getElementById('examTimer');
+            
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Add warning class when time is running low
+            if (examTimeLeft <= 300) { // 5 minutes
+                timerElement.classList.add('timer-warning');
+            }
+        }
+
+        function showQuestion() {
+            const question = currentExam.questions[currentQuestionIndex];
+            const container = document.getElementById('questionContainer');
+            
+            container.innerHTML = `
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        ${currentQuestionIndex + 1}. ${question.question}
+                    </h3>
+                    <div class="space-y-3">
+                        ${question.options.map((option, index) => `
+                            <label class="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-white transition-colors">
+                                <input type="radio" name="answer" value="${index}" 
+                                       ${studentAnswers[currentQuestionIndex] === index ? 'checked' : ''}
+                                       onchange="saveAnswer(${index})" 
+                                       class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+                                <span class="text-gray-700">${String.fromCharCode(65 + index)}. ${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Update progress
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            const progress = ((currentQuestionIndex + 1) / currentExam.questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            
+            if (currentQuestionIndex === currentExam.questions.length - 1) {
+                document.getElementById('nextBtn').classList.add('hidden');
+                document.getElementById('finishBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('nextBtn').classList.remove('hidden');
+                document.getElementById('finishBtn').classList.add('hidden');
+            }
+        }
+
+        function saveAnswer(answerIndex) {
+            studentAnswers[currentQuestionIndex] = answerIndex;
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentExam.questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion();
+            }
+        }
+
+        function finishExam() {
+            clearInterval(examTimer);
+            
+            // Calculate score
+            let correctAnswers = 0;
+            currentExam.questions.forEach((question, index) => {
+                if (studentAnswers[index] === question.correct) {
+                    correctAnswers++;
+                }
+            });
+            
+            const totalQuestions = currentExam.questions.length;
+            const score = Math.round((correctAnswers / totalQuestions) * 100);
+            
+            // Save result
+            const result = {
+                id: Date.now(),
+                studentNIS: currentStudent.nis,
+                studentName: currentStudent.name,
+                studentClass: currentStudent.class,
+                examId: currentExam.id,
+                examSubject: currentExam.subject,
+                score: score,
+                correctAnswers: correctAnswers,
+                totalQuestions: totalQuestions,
+                answers: studentAnswers,
+                timestamp: new Date().toISOString(),
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            examResults.push(result);
+            localStorage.setItem('examResults', JSON.stringify(examResults));
+            
+            // Show result
+            document.getElementById('examInterface').classList.add('hidden');
+            document.getElementById('examResult').classList.remove('hidden');
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('correctAnswers').textContent = correctAnswers;
+            document.getElementById('wrongAnswers').textContent = totalQuestions - correctAnswers;
+        }
+
+        function backToExamList() {
+            document.getElementById('examResult').classList.add('hidden');
+            document.getElementById('examList').classList.remove('hidden');
+            
+            // Reset exam state
+            currentExam = null;
+            currentQuestionIndex = 0;
+            studentAnswers = [];
+            examTimeLeft = 0;
+            
+            // Reset timer display
+            document.getElementById('examTimer').classList.remove('timer-warning');
+        }
+
+        // Admin exam management
+        function showAdminExams() {
+            document.getElementById('examManagement').classList.remove('hidden');
+            renderExamManagementTable();
+        }
+
+        function hideAdminExams() {
+            document.getElementById('examManagement').classList.add('hidden');
+            document.getElementById('createExamForm').classList.add('hidden');
+        }
+
+        function showCreateExam() {
+            document.getElementById('createExamForm').classList.remove('hidden');
+        }
+
+        function hideCreateExam() {
+            document.getElementById('createExamForm').classList.add('hidden');
+            
+            // Reset form
+            document.getElementById('examSubject').value = '';
+            document.getElementById('examClass').value = '';
+            document.getElementById('examDuration').value = '';
+            document.getElementById('examQuestionCount').value = '';
+            document.getElementById('examDescription').value = '';
+        }
+
+        function createExam(event) {
+            event.preventDefault();
+            
+            const subject = document.getElementById('examSubject').value;
+            const examClass = document.getElementById('examClass').value;
+            const duration = parseInt(document.getElementById('examDuration').value);
+            const questionCount = parseInt(document.getElementById('examQuestionCount').value);
+            const description = document.getElementById('examDescription').value;
+            
+            // Generate sample questions (in real app, this would be a proper question builder)
+            const questions = [];
+            for (let i = 0; i < questionCount; i++) {
+                questions.push({
+                    question: `Soal ${i + 1} untuk ${subject}`,
+                    options: ['Pilihan A', 'Pilihan B', 'Pilihan C', 'Pilihan D'],
+                    correct: 0 // Default correct answer
+                });
+            }
+            
+            const newExam = {
+                id: Date.now(),
+                subject: subject,
+                class: examClass,
+                duration: duration,
+                description: description,
+                status: 'active',
+                questions: questions
+            };
+            
+            examData.push(newExam);
+            localStorage.setItem('examData', JSON.stringify(examData));
+            
+            alert('Ujian berhasil dibuat!');
+            hideCreateExam();
+            renderExamManagementTable();
+            updateStats();
+        }
+
+        function renderExamManagementTable() {
+            const tbody = document.getElementById('examManagementTable');
+            tbody.innerHTML = '';
+            
+            examData.forEach(exam => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${exam.subject}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${exam.class}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${exam.duration} menit</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${exam.questions.length} soal</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${exam.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${exam.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="toggleExamStatus(${exam.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-3">
+                            ${exam.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
+                        </button>
+                        <button onclick="deleteExam(${exam.id})" class="text-red-600 hover:text-red-800 text-sm">
+                            Hapus
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function toggleExamStatus(examId) {
+            const exam = examData.find(e => e.id === examId);
+            if (exam) {
+                exam.status = exam.status === 'active' ? 'inactive' : 'active';
+                localStorage.setItem('examData', JSON.stringify(examData));
+                renderExamManagementTable();
+                updateStats();
+            }
+        }
+
+        function deleteExam(examId) {
+            if (confirm('Apakah Anda yakin ingin menghapus ujian ini?')) {
+                examData = examData.filter(e => e.id !== examId);
+                localStorage.setItem('examData', JSON.stringify(examData));
+                renderExamManagementTable();
+                updateStats();
+            }
+        }
+
+        // Attendance functions (existing code)
         function selectRole(role) {
             currentRole = role;
             document.getElementById('selectedRoleTitle').textContent = role.charAt(0).toUpperCase() + role.slice(1);
-            document.querySelector('.grid.md\\:grid-cols-3').parentElement.classList.add('hidden');
+            document.getElementById('attendanceMenu').classList.add('hidden');
             document.getElementById('attendanceForm').classList.remove('hidden');
             
             // Show/hide siswa specific fields
@@ -405,13 +1154,6 @@
                 document.getElementById('jurusan').required = false;
             }
             
-            resetForm();
-        }
-
-        function backToRoleSelection() {
-            document.getElementById('attendanceForm').classList.add('hidden');
-            document.querySelector('.grid.md\\:grid-cols-3').parentElement.classList.remove('hidden');
-            stopCamera();
             resetForm();
         }
 
@@ -447,11 +1189,9 @@
             const originalText = startBtn.innerHTML;
             
             try {
-                // Show loading state
                 startBtn.innerHTML = '<span>⏳</span><span>Membuka Kamera...</span>';
                 startBtn.disabled = true;
                 
-                // Check if getUserMedia is supported
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     throw new Error('Browser tidak mendukung akses kamera');
                 }
@@ -468,7 +1208,6 @@
                 video.srcObject = currentStream;
                 video.classList.remove('hidden');
                 
-                // Wait for video to load
                 await new Promise((resolve) => {
                     video.onloadedmetadata = resolve;
                 });
@@ -491,8 +1230,6 @@
                 }
                 
                 alert(errorMessage);
-                
-                // Reset button
                 startBtn.innerHTML = originalText;
                 startBtn.disabled = false;
             }
@@ -542,7 +1279,6 @@
             const btnEl = document.getElementById('getLocationBtn');
             const originalBtnText = btnEl.innerHTML;
             
-            // Check if geolocation is supported
             if (!navigator.geolocation) {
                 statusEl.textContent = 'Browser tidak mendukung geolocation';
                 statusEl.className = 'text-red-600';
@@ -550,7 +1286,6 @@
                 return;
             }
             
-            // Show loading state
             statusEl.textContent = 'Mendapatkan lokasi...';
             statusEl.className = 'text-blue-600';
             btnEl.innerHTML = '<span>⏳</span><span>Mencari Lokasi...</span>';
@@ -603,7 +1338,6 @@
                     btnEl.innerHTML = originalBtnText;
                     btnEl.disabled = false;
                     
-                    // Show manual location option
                     showManualLocationOption();
                 },
                 {
@@ -658,6 +1392,19 @@
         function handleAttendance(event) {
             event.preventDefault();
             
+            // Get location text properly
+            let locationText = '';
+            const coordsEl = document.getElementById('locationCoords');
+            const manualLocationInput = document.getElementById('manualLocation');
+            
+            if (coordsEl.textContent && !coordsEl.classList.contains('hidden')) {
+                locationText = coordsEl.textContent;
+            } else if (manualLocationInput.value) {
+                locationText = `Lokasi: ${manualLocationInput.value}`;
+            } else {
+                locationText = 'Lokasi tidak tersedia';
+            }
+            
             const formData = {
                 id: Date.now(),
                 timestamp: new Date().toISOString(),
@@ -667,16 +1414,29 @@
                 kelas: currentRole === 'siswa' ? document.getElementById('kelas').value : '',
                 jurusan: currentRole === 'siswa' ? document.getElementById('jurusan').value : '',
                 photo: document.getElementById('capturedPhoto').src,
-                location: document.getElementById('locationCoords').textContent,
+                location: locationText,
                 date: new Date().toISOString().split('T')[0]
             };
             
-            attendanceData.push(formData);
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            // Load existing data, add new entry, and save back
+            let existingData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            existingData.push(formData);
+            localStorage.setItem('attendanceData', JSON.stringify(existingData));
             
-            alert('Absensi berhasil disimpan!');
-            backToRoleSelection();
-            updateStats();
+            // Update global variable
+            attendanceData = existingData;
+            
+            // Show success message with details
+            const successMsg = `✅ Absensi berhasil disimpan!\n\nDetail:\n- Nama: ${formData.name}\n- Role: ${formData.role.toUpperCase()}\n- Waktu: ${new Date(formData.timestamp).toLocaleString('id-ID')}\n- Lokasi: ${locationText}`;
+            alert(successMsg);
+            
+            backToAttendanceMenu();
+            
+            // Update stats if admin is logged in
+            if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
+                updateStats();
+                renderAttendanceTable();
+            }
         }
 
         function updateStats() {
@@ -687,6 +1447,7 @@
             document.getElementById('guruHadir').textContent = todayData.filter(item => item.role === 'guru').length;
             document.getElementById('karyawanHadir').textContent = todayData.filter(item => item.role === 'karyawan').length;
             document.getElementById('siswaHadir').textContent = todayData.filter(item => item.role === 'siswa').length;
+            document.getElementById('activeExams').textContent = examData.filter(exam => exam.status === 'active').length;
         }
 
         function renderAttendanceTable() {
@@ -695,33 +1456,87 @@
             
             tbody.innerHTML = '';
             
-            filteredData.forEach(item => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-                
-                const time = new Date(item.timestamp).toLocaleString('id-ID');
-                const kelasJurusan = item.role === 'siswa' ? `${item.kelas} - ${item.jurusan}` : '-';
-                
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-900">${time}</td>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.name}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(item.role)}">
-                            ${item.role.charAt(0).toUpperCase() + item.role.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.idNumber}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${kelasJurusan}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">${item.location}</td>
-                    <td class="px-4 py-3">
-                        <button onclick="showPhoto('${item.photo}')" class="text-blue-600 hover:text-blue-800 text-sm">
-                            Lihat Foto
-                        </button>
-                    </td>
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            <div class="flex flex-col items-center space-y-2">
+                                <span class="text-4xl">📋</span>
+                                <span>Belum ada data absensi</span>
+                                <span class="text-sm">Data akan muncul setelah ada yang melakukan absensi</span>
+                            </div>
+                        </td>
+                    </tr>
                 `;
-                
-                tbody.appendChild(row);
+            } else {
+                filteredData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    const time = new Date(item.timestamp).toLocaleString('id-ID');
+                    const kelasJurusan = item.role === 'siswa' ? `${item.kelas} - ${item.jurusan}` : '-';
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-900">${time}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.name}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(item.role)}">
+                                ${item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.idNumber}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${kelasJurusan}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${item.location}</td>
+                        <td class="px-4 py-3">
+                            <button onclick="showPhoto('${item.photo}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                                Lihat Foto
+                            </button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            // Update last refresh timestamp
+            updateLastRefreshTime();
+        }
+
+        function refreshData() {
+            // Reload data from localStorage
+            attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            examData = JSON.parse(localStorage.getItem('examData')) || [];
+            examResults = JSON.parse(localStorage.getItem('examResults')) || [];
+            
+            // Update all displays
+            updateStats();
+            renderAttendanceTable();
+            renderExamManagementTable();
+            
+            // Show refresh animation
+            const refreshBtn = event.target.closest('button');
+            const originalContent = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = '<span class="animate-spin">🔄</span><span>Memuat...</span>';
+            refreshBtn.disabled = true;
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalContent;
+                refreshBtn.disabled = false;
+            }, 1000);
+            
+            console.log('Data refreshed:', {
+                attendance: attendanceData.length,
+                exams: examData.length,
+                results: examResults.length
             });
+        }
+
+        function updateLastRefreshTime() {
+            const now = new Date().toLocaleTimeString('id-ID');
+            const lastUpdateEl = document.getElementById('lastUpdate');
+            if (lastUpdateEl) {
+                lastUpdateEl.textContent = `Terakhir diperbarui: ${now}`;
+            }
         }
 
         function getRoleBadgeClass(role) {
@@ -843,5 +1658,5 @@
             window.URL.revokeObjectURL(url);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f2b39a721a3e0',t:'MTc1ODg1MjAzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f3986f6aafe01',t:'MTc1ODg1MjYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
