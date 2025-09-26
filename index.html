@@ -389,12 +389,13 @@
                         
                         <!-- Location Permission Guide -->
                         <div id="locationGuide" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <h4 class="font-medium text-blue-900 mb-2">💡 Cara Mengizinkan Akses Lokasi:</h4>
+                            <h4 class="font-medium text-blue-900 mb-2">📍 Validasi Lokasi Absensi:</h4>
                             <div class="text-sm text-blue-800 space-y-1">
-                                <p>1. Klik tombol "Dapatkan Lokasi" di bawah</p>
-                                <p>2. Browser akan menampilkan popup izin lokasi</p>
-                                <p>3. Klik "Allow" atau "Izinkan" pada popup tersebut</p>
-                                <p>4. Jika tidak muncul popup, cek ikon 🔒 di address bar browser</p>
+                                <p><strong>• Lokasi Wajib:</strong> ${locationSettings.schoolName}</p>
+                                <p><strong>• Radius Valid:</strong> ${locationSettings.validationRadius || 200} meter dari sekolah</p>
+                                <p>1. Klik "Dapatkan Lokasi" untuk menggunakan GPS</p>
+                                <p>2. Pastikan Anda berada di area sekolah</p>
+                                <p>3. Jika GPS gagal, gunakan "Input Manual" dengan lokasi yang valid</p>
                             </div>
                         </div>
                         
@@ -407,7 +408,7 @@
                                 <div id="manualLocationDiv" class="hidden mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                     <h5 class="font-medium text-yellow-800 mb-2">📝 Input Lokasi Manual</h5>
                                     <p class="text-sm text-yellow-700 mb-3">Jika GPS tidak bisa diakses, masukkan lokasi secara manual:</p>
-                                    <input type="text" id="manualLocation" placeholder="Contoh: Ruang Guru, Lantai 2" class="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm">
+                                    <input type="text" id="manualLocation" placeholder="Contoh: Ruang Guru SMK Muhammadiyah Bojong" class="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm">
                                     <button type="button" onclick="useManualLocation()" class="mt-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                                         Gunakan Lokasi Manual
                                     </button>
@@ -454,6 +455,9 @@
                     </button>
                     <button onclick="showAdminExams()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Kelola Ujian
+                    </button>
+                    <button onclick="showLocationSettings()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Setting Lokasi
                     </button>
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Logout
@@ -1171,6 +1175,83 @@
                 </form>
             </div>
 
+            <!-- Location Settings -->
+            <div id="locationSettings" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Setting Lokasi Sekolah</h3>
+                    <button onclick="hideLocationSettings()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h4 class="font-medium text-blue-900 mb-2">📍 Informasi Setting Lokasi</h4>
+                    <div class="text-sm text-blue-800 space-y-1">
+                        <p>• Setting ini menentukan lokasi yang valid untuk absensi</p>
+                        <p>• Semua absensi harus dilakukan dalam radius yang ditentukan dari lokasi sekolah</p>
+                        <p>• Koordinat GPS akan digunakan untuk validasi lokasi absensi</p>
+                    </div>
+                </div>
+
+                <form onsubmit="saveLocationSettings(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Nama Sekolah</label>
+                        <input type="text" id="schoolName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" value="SMK Muhammadiyah Bojong" required readonly>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Alamat Lengkap</label>
+                        <textarea id="schoolAddress" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" rows="3" placeholder="Masukkan alamat lengkap sekolah..." required></textarea>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Latitude</label>
+                            <input type="number" id="schoolLatitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="-6.200000" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Longitude</label>
+                            <input type="number" id="schoolLongitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="106.816666" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Radius Validasi (meter)</label>
+                        <select id="validationRadius" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" required>
+                            <option value="">Pilih Radius</option>
+                            <option value="50">50 meter (Sangat Ketat)</option>
+                            <option value="100">100 meter (Ketat)</option>
+                            <option value="200">200 meter (Normal)</option>
+                            <option value="500">500 meter (Longgar)</option>
+                            <option value="1000">1000 meter (Sangat Longgar)</option>
+                        </select>
+                        <p class="text-sm text-gray-600 mt-1">Absensi hanya bisa dilakukan dalam radius ini dari lokasi sekolah</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h4 class="font-medium text-yellow-900 mb-2">🔧 Cara Mendapatkan Koordinat GPS</h4>
+                        <div class="text-sm text-yellow-800 space-y-1">
+                            <p>1. Buka Google Maps di browser</p>
+                            <p>2. Cari lokasi "SMK Muhammadiyah Bojong"</p>
+                            <p>3. Klik kanan pada pin lokasi sekolah</p>
+                            <p>4. Pilih koordinat yang muncul (contoh: -6.200000, 106.816666)</p>
+                            <p>5. Copy dan paste ke form di atas</p>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="hideLocationSettings()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg transition-colors">
+                            Simpan Setting Lokasi
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Create Exam Form -->
             <div id="createExamForm" class="bg-white rounded-xl shadow-lg p-6 hidden">
                 <div class="flex items-center justify-between mb-6">
@@ -1240,6 +1321,7 @@
         let examResults = JSON.parse(localStorage.getItem('examResults')) || [];
         let teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
         let subjectData = JSON.parse(localStorage.getItem('subjectData')) || [];
+        let locationSettings = JSON.parse(localStorage.getItem('locationSettings')) || {};
         let currentStream = null;
         let hasPhoto = false;
         let hasLocation = false;
@@ -1411,6 +1493,18 @@
                 }
             ];
             localStorage.setItem('subjectData', JSON.stringify(subjectData));
+        }
+
+        // Default location settings
+        if (Object.keys(locationSettings).length === 0) {
+            locationSettings = {
+                schoolName: 'SMK Muhammadiyah Bojong',
+                schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Bogor, Jawa Barat',
+                schoolLatitude: -6.5951,
+                schoolLongitude: 106.7794,
+                validationRadius: 200
+            };
+            localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
         }
 
         // Initialize
@@ -1625,6 +1719,7 @@
             document.getElementById('teacherManagement').classList.add('hidden');
             document.getElementById('addTeacherForm').classList.add('hidden');
             document.getElementById('editTeacherForm').classList.add('hidden');
+            document.getElementById('locationSettings').classList.add('hidden');
             currentTeacher = null;
             backToMainMenu();
         }
@@ -1964,6 +2059,80 @@
                 renderExamManagementTable();
                 updateStats();
             }
+        }
+
+        // Location Settings Functions
+        function showLocationSettings() {
+            document.getElementById('locationSettings').classList.remove('hidden');
+            loadLocationSettings();
+        }
+
+        function hideLocationSettings() {
+            document.getElementById('locationSettings').classList.add('hidden');
+        }
+
+        function loadLocationSettings() {
+            document.getElementById('schoolName').value = locationSettings.schoolName || 'SMK Muhammadiyah Bojong';
+            document.getElementById('schoolAddress').value = locationSettings.schoolAddress || '';
+            document.getElementById('schoolLatitude').value = locationSettings.schoolLatitude || '';
+            document.getElementById('schoolLongitude').value = locationSettings.schoolLongitude || '';
+            document.getElementById('validationRadius').value = locationSettings.validationRadius || '';
+        }
+
+        function saveLocationSettings(event) {
+            event.preventDefault();
+
+            const newSettings = {
+                schoolName: document.getElementById('schoolName').value,
+                schoolAddress: document.getElementById('schoolAddress').value,
+                schoolLatitude: parseFloat(document.getElementById('schoolLatitude').value),
+                schoolLongitude: parseFloat(document.getElementById('schoolLongitude').value),
+                validationRadius: parseInt(document.getElementById('validationRadius').value)
+            };
+
+            locationSettings = newSettings;
+            localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
+
+            alert('Setting lokasi berhasil disimpan!\n\nSekarang semua absensi akan divalidasi berdasarkan lokasi yang telah ditentukan.');
+            hideLocationSettings();
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c; // Distance in meters
+        }
+
+        function validateLocation(userLat, userLon) {
+            if (!locationSettings.schoolLatitude || !locationSettings.schoolLongitude) {
+                return { valid: true, message: 'Validasi lokasi belum dikonfigurasi' };
+            }
+
+            const distance = calculateDistance(
+                locationSettings.schoolLatitude,
+                locationSettings.schoolLongitude,
+                userLat,
+                userLon
+            );
+
+            const isValid = distance <= locationSettings.validationRadius;
+            
+            return {
+                valid: isValid,
+                distance: Math.round(distance),
+                message: isValid 
+                    ? `Lokasi valid (${Math.round(distance)}m dari sekolah)`
+                    : `Lokasi terlalu jauh (${Math.round(distance)}m dari sekolah, maksimal ${locationSettings.validationRadius}m)`
+            };
         }
 
         // Teacher Management Functions
@@ -2423,16 +2592,31 @@
                     const lng = position.coords.longitude;
                     const accuracy = position.coords.accuracy;
                     
-                    statusEl.textContent = '✅ Lokasi GPS berhasil didapatkan';
-                    statusEl.className = 'text-green-600 font-medium';
-                    coordsEl.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)} (±${Math.round(accuracy)}m)`;
-                    coordsEl.classList.remove('hidden');
-                    btnEl.classList.add('hidden');
-                    document.getElementById('manualLocationBtn').classList.add('hidden');
-                    document.getElementById('locationGuide').classList.add('hidden');
+                    // Validate location against school location
+                    const validation = validateLocation(lat, lng);
                     
-                    hasLocation = true;
-                    updateSubmitButton();
+                    if (validation.valid) {
+                        statusEl.innerHTML = `✅ ${validation.message}`;
+                        statusEl.className = 'text-green-600 font-medium';
+                        coordsEl.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)} (±${Math.round(accuracy)}m)`;
+                        coordsEl.classList.remove('hidden');
+                        btnEl.classList.add('hidden');
+                        document.getElementById('manualLocationBtn').classList.add('hidden');
+                        document.getElementById('locationGuide').classList.add('hidden');
+                        
+                        hasLocation = true;
+                        updateSubmitButton();
+                    } else {
+                        statusEl.innerHTML = `❌ ${validation.message}<br><small class="text-gray-600">Anda harus berada di area ${locationSettings.schoolName} untuk melakukan absensi</small>`;
+                        statusEl.className = 'text-red-600';
+                        btnEl.innerHTML = originalBtnText;
+                        btnEl.disabled = false;
+                        
+                        // Show manual location option for admin override
+                        showManualLocationOption();
+                        hasLocation = false;
+                        updateSubmitButton();
+                    }
                 },
                 function(error) {
                     console.error('Geolocation error:', error);
@@ -2493,21 +2677,35 @@
                 return;
             }
             
+            // Check if location contains school name or is a valid school location
+            const schoolKeywords = ['smk muhammadiyah bojong', 'sekolah', 'ruang guru', 'ruang kelas', 'laboratorium', 'perpustakaan', 'kantin', 'lapangan'];
+            const isValidLocation = schoolKeywords.some(keyword => 
+                location.toLowerCase().includes(keyword) || 
+                location.toLowerCase().includes('smk') ||
+                location.toLowerCase().includes('muhammadiyah') ||
+                location.toLowerCase().includes('bojong')
+            );
+            
             const statusEl = document.getElementById('locationStatus');
             const coordsEl = document.getElementById('locationCoords');
             
-            statusEl.textContent = '✅ Lokasi manual berhasil diset';
-            statusEl.className = 'text-green-600 font-medium';
-            coordsEl.textContent = `Lokasi: ${location}`;
-            coordsEl.classList.remove('hidden');
-            
-            document.getElementById('manualLocationDiv').classList.add('hidden');
-            document.getElementById('getLocationBtn').classList.add('hidden');
-            document.getElementById('manualLocationBtn').classList.add('hidden');
-            document.getElementById('locationGuide').classList.add('hidden');
-            
-            hasLocation = true;
-            updateSubmitButton();
+            if (isValidLocation) {
+                statusEl.textContent = '✅ Lokasi manual berhasil diset (Tervalidasi)';
+                statusEl.className = 'text-green-600 font-medium';
+                coordsEl.textContent = `Lokasi: ${location} - ${locationSettings.schoolName}`;
+                coordsEl.classList.remove('hidden');
+                
+                document.getElementById('manualLocationDiv').classList.add('hidden');
+                document.getElementById('getLocationBtn').classList.add('hidden');
+                document.getElementById('manualLocationBtn').classList.add('hidden');
+                document.getElementById('locationGuide').classList.add('hidden');
+                
+                hasLocation = true;
+                updateSubmitButton();
+            } else {
+                alert(`Lokasi tidak valid!\n\nLokasi harus berada di area ${locationSettings.schoolName}.\n\nContoh lokasi yang valid:\n- Ruang Guru SMK Muhammadiyah Bojong\n- Ruang Kelas X RPL 1\n- Laboratorium Komputer\n- Perpustakaan Sekolah`);
+                manualInput.focus();
+            }
         }
 
         function updateSubmitButton() {
@@ -2851,24 +3049,23 @@
                         sakit: 0,
                         izin: 0,
                         alpha: 0,
-                        totalHadir: 0,
+                        totalHadirHari: 0,
                         attendanceDays: new Set()
                     };
                 }
                 
-                // Count attendance types
+                // Count attendance days (masuk entries only)
                 if (item.attendanceType === 'masuk') {
                     recap[key].attendanceDays.add(item.date);
                     
+                    // Count late attendance
                     if (item.status === 'TERLAMBAT') {
                         recap[key].telat++;
-                    } else if (item.status === 'TEPAT WAKTU') {
-                        recap[key].totalHadir++;
                     }
                 }
                 
-                // Count manual entries by status
-                if (item.isManualEntry) {
+                // Count manual entries by status (for masuk type only to avoid double counting)
+                if (item.isManualEntry && item.attendanceType === 'masuk') {
                     switch(item.status) {
                         case 'SAKIT':
                             recap[key].sakit++;
@@ -2880,17 +3077,20 @@
                             recap[key].alpha++;
                             break;
                         case 'HADIR':
-                            recap[key].totalHadir++;
+                            recap[key].attendanceDays.add(item.date);
                             break;
                     }
                 }
             });
             
-            // Convert Set to count for total attendance days and calculate final total hadir
+            // Calculate final totals
             Object.values(recap).forEach(person => {
+                // Total hari hadir (unique days with masuk attendance)
                 person.totalHadirHari = person.attendanceDays.size;
-                // Total Hadir = Total hari hadir - Total telat
+                
+                // Total Hadir Bersih = Total hari hadir - Total telat
                 person.totalHadirBersih = Math.max(0, person.totalHadirHari - person.telat);
+                
                 delete person.attendanceDays;
             });
             
@@ -3366,5 +3566,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984fdc6801bea8e1',t:'MTc1ODg1OTI5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984ff0070553cded',t:'MTc1ODg2MDEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
