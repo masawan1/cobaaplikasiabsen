@@ -2886,9 +2886,11 @@
                 }
             });
             
-            // Convert Set to count for total attendance days
+            // Convert Set to count for total attendance days and calculate final total hadir
             Object.values(recap).forEach(person => {
                 person.totalHadirHari = person.attendanceDays.size;
+                // Total Hadir = Total hari hadir - Total telat
+                person.totalHadirBersih = Math.max(0, person.totalHadirHari - person.telat);
                 delete person.attendanceDays;
             });
             
@@ -2930,7 +2932,7 @@
                         <td style="padding: 5px; text-align: center;">${person.sakit}</td>
                         <td style="padding: 5px; text-align: center;">${person.izin}</td>
                         <td style="padding: 5px; text-align: center;">${person.alpha}</td>
-                        <td style="padding: 5px; text-align: center;">${person.totalHadirHari}</td>
+                        <td style="padding: 5px; text-align: center;">${person.totalHadirBersih}</td>
                     </tr>
                 `;
             });
@@ -2940,7 +2942,7 @@
             const totalSakit = recapArray.reduce((sum, p) => sum + p.sakit, 0);
             const totalIzin = recapArray.reduce((sum, p) => sum + p.izin, 0);
             const totalAlpha = recapArray.reduce((sum, p) => sum + p.alpha, 0);
-            const totalHadirHari = recapArray.reduce((sum, p) => sum + p.totalHadirHari, 0);
+            const totalHadirHari = recapArray.reduce((sum, p) => sum + p.totalHadirBersih, 0);
             
             html += `
                     <tr style="background-color: #e0e0e0; font-weight: bold;">
@@ -3364,5 +3366,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984fa3cc9074cb36',t:'MTc1ODg1Njk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984fdc6801bea8e1',t:'MTc1ODg1OTI5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
