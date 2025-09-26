@@ -1184,7 +1184,7 @@
                 <form onsubmit="saveLocationSettings(event)" class="space-y-6">
                     <div>
                         <label class="block text-gray-700 text-sm font-medium mb-2">Nama Sekolah</label>
-                        <input type="text" id="schoolName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" value="SMK Muhammadiyah Bojong" required readonly>
+                        <input type="text" id="schoolName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" value="SMK Muhammadiyah Bojong" required>
                     </div>
 
                     <div>
@@ -1195,11 +1195,11 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Latitude</label>
-                            <input type="number" id="schoolLatitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="-6.200000" required>
+                            <input type="number" id="schoolLatitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="-6.914700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Longitude</label>
-                            <input type="number" id="schoolLongitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="106.816666" required>
+                            <input type="number" id="schoolLongitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="109.676200" required>
                         </div>
                     </div>
 
@@ -1220,9 +1220,9 @@
                         <h4 class="font-medium text-yellow-900 mb-2">🔧 Cara Mendapatkan Koordinat GPS</h4>
                         <div class="text-sm text-yellow-800 space-y-1">
                             <p>1. Buka Google Maps di browser</p>
-                            <p>2. Cari lokasi "SMK Muhammadiyah Bojong"</p>
+                            <p>2. Cari lokasi "SMK Muhammadiyah Bojong Pekalongan"</p>
                             <p>3. Klik kanan pada pin lokasi sekolah</p>
-                            <p>4. Pilih koordinat yang muncul (contoh: -6.200000, 106.816666)</p>
+                            <p>4. Pilih koordinat yang muncul (contoh: -6.914700, 109.676200)</p>
                             <p>5. Copy dan paste ke form di atas</p>
                         </div>
                     </div>
@@ -1485,9 +1485,9 @@
         if (Object.keys(locationSettings).length === 0) {
             locationSettings = {
                 schoolName: 'SMK Muhammadiyah Bojong',
-                schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Bogor, Jawa Barat',
-                schoolLatitude: -6.5951,
-                schoolLongitude: 106.7794,
+                schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Pekalongan, Jawa Tengah 51156',
+                schoolLatitude: -6.9147,
+                schoolLongitude: 109.6762,
                 validationRadius: 200
             };
             localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
@@ -3517,5 +3517,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9850540966e88814',t:'MTc1ODg2NDE5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985059a127f58814',t:'MTc1ODg2NDQyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
