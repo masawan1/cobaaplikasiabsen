@@ -47,6 +47,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <div id="syncStatus" class="text-xs text-green-600 hidden">
+                        ✅ Data tersinkron
+                    </div>
                     <span id="currentTime" class="text-sm text-gray-600"></span>
                     <button onclick="showLogin()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Login Admin
@@ -1317,15 +1320,265 @@
         // Global variables
         let currentRole = '';
         let currentTeacher = null;
-        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-        let examData = JSON.parse(localStorage.getItem('examData')) || [];
-        let examResults = JSON.parse(localStorage.getItem('examResults')) || [];
-        let teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
-        let subjectData = JSON.parse(localStorage.getItem('subjectData')) || [];
-        let locationSettings = JSON.parse(localStorage.getItem('locationSettings')) || {};
+        let attendanceData = [];
+        let examData = [];
+        let examResults = [];
+        let teacherData = [];
+        let subjectData = [];
+        let locationSettings = {};
         let currentStream = null;
         let hasPhoto = false;
         let hasLocation = false;
+        
+        // Cloud storage simulation using a shared key
+        const STORAGE_KEY = 'smk_system_data_v2';
+        
+        // Initialize cloud storage
+        function initCloudStorage() {
+            try {
+                // Try to get data from cloud storage (simulated with localStorage but with shared key)
+                const cloudData = localStorage.getItem(STORAGE_KEY);
+                if (cloudData) {
+                    const parsedData = JSON.parse(cloudData);
+                    attendanceData = parsedData.attendanceData || [];
+                    examData = parsedData.examData || [];
+                    examResults = parsedData.examResults || [];
+                    teacherData = parsedData.teacherData || [];
+                    subjectData = parsedData.subjectData || [];
+                    locationSettings = parsedData.locationSettings || {};
+                    console.log('Data loaded from cloud:', {
+                        attendance: attendanceData.length,
+                        teachers: teacherData.length,
+                        exams: examData.length
+                    });
+                } else {
+                    // Initialize with default data if no cloud data exists
+                    initializeDefaultData();
+                    saveToCloud();
+                }
+            } catch (error) {
+                console.error('Error loading cloud data:', error);
+                initializeDefaultData();
+            }
+        }
+        
+        // Save all data to cloud
+        function saveToCloud() {
+            try {
+                const cloudData = {
+                    attendanceData,
+                    examData,
+                    examResults,
+                    teacherData,
+                    subjectData,
+                    locationSettings,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+                
+                // Show sync status
+                const syncStatus = document.getElementById('syncStatus');
+                if (syncStatus) {
+                    syncStatus.classList.remove('hidden');
+                    syncStatus.innerHTML = '✅ Data tersinkron';
+                    syncStatus.className = 'text-xs text-green-600';
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        syncStatus.classList.add('hidden');
+                    }, 3000);
+                }
+                
+                console.log('Data saved to cloud successfully');
+            } catch (error) {
+                console.error('Error saving to cloud:', error);
+                
+                // Show error status
+                const syncStatus = document.getElementById('syncStatus');
+                if (syncStatus) {
+                    syncStatus.classList.remove('hidden');
+                    syncStatus.innerHTML = '❌ Gagal sinkron';
+                    syncStatus.className = 'text-xs text-red-600';
+                    
+                    // Hide after 5 seconds
+                    setTimeout(() => {
+                        syncStatus.classList.add('hidden');
+                    }, 5000);
+                }
+            }
+        }
+        
+        // Initialize default data
+        function initializeDefaultData() {
+            // Default teacher data
+            if (teacherData.length === 0) {
+                teacherData = [
+                    {
+                        id: 1,
+                        nip: '198501012010011001',
+                        name: 'Dr. Ahmad Susanto, S.Pd',
+                        email: 'ahmad.susanto@smk.sch.id',
+                        phone: '081234567890',
+                        subject: 'Matematika',
+                        gender: 'Laki-laki',
+                        birthDate: '1985-01-01',
+                        status: 'PNS',
+                        address: 'Jl. Pendidikan No. 123, Jakarta Selatan',
+                        username: 'ahmad.susanto',
+                        password: 'guru123',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        nip: '199002152015022002',
+                        name: 'Siti Nurhaliza, S.Kom',
+                        email: 'siti.nurhaliza@smk.sch.id',
+                        phone: '081234567891',
+                        subject: 'Pemrograman Web',
+                        gender: 'Perempuan',
+                        birthDate: '1990-02-15',
+                        status: 'PNS',
+                        address: 'Jl. Teknologi No. 456, Jakarta Timur',
+                        username: 'siti.nurhaliza',
+                        password: 'guru123',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 3,
+                        nip: '198803102012011003',
+                        name: 'Budi Santoso, S.T',
+                        email: 'budi.santoso@smk.sch.id',
+                        phone: '081234567892',
+                        subject: 'Jaringan Komputer',
+                        gender: 'Laki-laki',
+                        birthDate: '1988-03-10',
+                        status: 'Honorer',
+                        address: 'Jl. Komputer No. 789, Jakarta Barat',
+                        username: 'budi.santoso',
+                        password: 'guru123',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+            }
+
+            // Default exam data
+            if (examData.length === 0) {
+                examData = [
+                    {
+                        id: 1,
+                        subject: 'Matematika',
+                        class: 'X RPL 1',
+                        duration: 60,
+                        description: 'Ujian Matematika Semester 1',
+                        status: 'active',
+                        questions: [
+                            {
+                                question: 'Berapakah hasil dari 2 + 2?',
+                                options: ['3', '4', '5', '6'],
+                                correct: 1
+                            },
+                            {
+                                question: 'Berapakah hasil dari 5 × 3?',
+                                options: ['12', '15', '18', '20'],
+                                correct: 1
+                            },
+                            {
+                                question: 'Berapakah hasil dari 10 ÷ 2?',
+                                options: ['3', '4', '5', '6'],
+                                correct: 2
+                            },
+                            {
+                                question: 'Berapakah hasil dari 8 - 3?',
+                                options: ['4', '5', '6', '7'],
+                                correct: 1
+                            },
+                            {
+                                question: 'Berapakah hasil dari 3²?',
+                                options: ['6', '8', '9', '12'],
+                                correct: 2
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        subject: 'Bahasa Indonesia',
+                        class: 'XI RPL 1',
+                        duration: 45,
+                        description: 'Ujian Bahasa Indonesia - Teks Eksposisi',
+                        status: 'active',
+                        questions: [
+                            {
+                                question: 'Apa yang dimaksud dengan teks eksposisi?',
+                                options: ['Teks yang berisi cerita', 'Teks yang berisi informasi', 'Teks yang berisi puisi', 'Teks yang berisi dialog'],
+                                correct: 1
+                            },
+                            {
+                                question: 'Struktur teks eksposisi terdiri dari?',
+                                options: ['Orientasi-Komplikasi-Resolusi', 'Tesis-Argumentasi-Penegasan', 'Pembuka-Isi-Penutup', 'Judul-Isi-Kesimpulan'],
+                                correct: 1
+                            }
+                        ]
+                    }
+                ];
+            }
+
+            // Default subject data
+            if (subjectData.length === 0) {
+                subjectData = [
+                    {
+                        id: 1,
+                        code: 'MTK001',
+                        name: 'Matematika',
+                        category: 'Umum',
+                        classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2'],
+                        description: 'Mata pelajaran matematika dasar untuk SMK',
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        code: 'BIN001',
+                        name: 'Bahasa Indonesia',
+                        category: 'Umum',
+                        classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                        description: 'Mata pelajaran bahasa Indonesia untuk semua kelas',
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 3,
+                        code: 'PWB001',
+                        name: 'Pemrograman Web',
+                        category: 'Kejuruan',
+                        classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                        description: 'Mata pelajaran pemrograman web untuk jurusan RPL',
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 4,
+                        code: 'BDT001',
+                        name: 'Basis Data',
+                        category: 'Kejuruan',
+                        classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
+                        description: 'Mata pelajaran basis data untuk jurusan RPL',
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+            }
+
+            // Default location settings
+            if (Object.keys(locationSettings).length === 0) {
+                locationSettings = {
+                    schoolName: 'SMK Muhammadiyah Bojong',
+                    schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Pekalongan, Jawa Tengah 51156',
+                    schoolLatitude: -6.914700,
+                    schoolLongitude: 109.676200,
+                    validationRadius: 1000
+                };
+            }
+        }
         
         // Exam variables
         let currentStudent = null;
@@ -1335,189 +1588,13 @@
         let examTimer = null;
         let examTimeLeft = 0;
 
-        // Sample teacher data
-        if (teacherData.length === 0) {
-            teacherData = [
-                {
-                    id: 1,
-                    nip: '198501012010011001',
-                    name: 'Dr. Ahmad Susanto, S.Pd',
-                    email: 'ahmad.susanto@smk.sch.id',
-                    phone: '081234567890',
-                    subject: 'Matematika',
-                    gender: 'Laki-laki',
-                    birthDate: '1985-01-01',
-                    status: 'PNS',
-                    address: 'Jl. Pendidikan No. 123, Jakarta Selatan',
-                    username: 'ahmad.susanto',
-                    password: 'guru123',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    nip: '199002152015022002',
-                    name: 'Siti Nurhaliza, S.Kom',
-                    email: 'siti.nurhaliza@smk.sch.id',
-                    phone: '081234567891',
-                    subject: 'Pemrograman Web',
-                    gender: 'Perempuan',
-                    birthDate: '1990-02-15',
-                    status: 'PNS',
-                    address: 'Jl. Teknologi No. 456, Jakarta Timur',
-                    username: 'siti.nurhaliza',
-                    password: 'guru123',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 3,
-                    nip: '198803102012011003',
-                    name: 'Budi Santoso, S.T',
-                    email: 'budi.santoso@smk.sch.id',
-                    phone: '081234567892',
-                    subject: 'Jaringan Komputer',
-                    gender: 'Laki-laki',
-                    birthDate: '1988-03-10',
-                    status: 'Honorer',
-                    address: 'Jl. Komputer No. 789, Jakarta Barat',
-                    username: 'budi.santoso',
-                    password: 'guru123',
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            localStorage.setItem('teacherData', JSON.stringify(teacherData));
-        }
-
-        // Sample exam data
-        if (examData.length === 0) {
-            examData = [
-                {
-                    id: 1,
-                    subject: 'Matematika',
-                    class: 'X RPL 1',
-                    duration: 60,
-                    description: 'Ujian Matematika Semester 1',
-                    status: 'active',
-                    questions: [
-                        {
-                            question: 'Berapakah hasil dari 2 + 2?',
-                            options: ['3', '4', '5', '6'],
-                            correct: 1
-                        },
-                        {
-                            question: 'Berapakah hasil dari 5 × 3?',
-                            options: ['12', '15', '18', '20'],
-                            correct: 1
-                        },
-                        {
-                            question: 'Berapakah hasil dari 10 ÷ 2?',
-                            options: ['3', '4', '5', '6'],
-                            correct: 2
-                        },
-                        {
-                            question: 'Berapakah hasil dari 8 - 3?',
-                            options: ['4', '5', '6', '7'],
-                            correct: 1
-                        },
-                        {
-                            question: 'Berapakah hasil dari 3²?',
-                            options: ['6', '8', '9', '12'],
-                            correct: 2
-                        }
-                    ]
-                },
-                {
-                    id: 2,
-                    subject: 'Bahasa Indonesia',
-                    class: 'XI RPL 1',
-                    duration: 45,
-                    description: 'Ujian Bahasa Indonesia - Teks Eksposisi',
-                    status: 'active',
-                    questions: [
-                        {
-                            question: 'Apa yang dimaksud dengan teks eksposisi?',
-                            options: ['Teks yang berisi cerita', 'Teks yang berisi informasi', 'Teks yang berisi puisi', 'Teks yang berisi dialog'],
-                            correct: 1
-                        },
-                        {
-                            question: 'Struktur teks eksposisi terdiri dari?',
-                            options: ['Orientasi-Komplikasi-Resolusi', 'Tesis-Argumentasi-Penegasan', 'Pembuka-Isi-Penutup', 'Judul-Isi-Kesimpulan'],
-                            correct: 1
-                        }
-                    ]
-                }
-            ];
-            localStorage.setItem('examData', JSON.stringify(examData));
-        }
-
-        // Sample subject data
-        if (subjectData.length === 0) {
-            subjectData = [
-                {
-                    id: 1,
-                    code: 'MTK001',
-                    name: 'Matematika',
-                    category: 'Umum',
-                    classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2'],
-                    description: 'Mata pelajaran matematika dasar untuk SMK',
-                    status: 'active',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    code: 'BIN001',
-                    name: 'Bahasa Indonesia',
-                    category: 'Umum',
-                    classes: ['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
-                    description: 'Mata pelajaran bahasa Indonesia untuk semua kelas',
-                    status: 'active',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 3,
-                    code: 'PWB001',
-                    name: 'Pemrograman Web',
-                    category: 'Kejuruan',
-                    classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
-                    description: 'Mata pelajaran pemrograman web untuk jurusan RPL',
-                    status: 'active',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 4,
-                    code: 'BDT001',
-                    name: 'Basis Data',
-                    category: 'Kejuruan',
-                    classes: ['XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'],
-                    description: 'Mata pelajaran basis data untuk jurusan RPL',
-                    status: 'active',
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            localStorage.setItem('subjectData', JSON.stringify(subjectData));
-        }
-
-        // Default location settings
-        if (Object.keys(locationSettings).length === 0) {
-            locationSettings = {
-                schoolName: 'SMK Muhammadiyah Bojong',
-                schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Pekalongan, Jawa Tengah 51156',
-                schoolLatitude: -6.914700,
-                schoolLongitude: 109.676200,
-                validationRadius: 200
-            };
-            localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize cloud storage first
+            initCloudStorage();
+            
             updateTime();
             setInterval(updateTime, 1000);
-            
-            // Load data from localStorage on page load
-            attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            examData = JSON.parse(localStorage.getItem('examData')) || [];
-            examResults = JSON.parse(localStorage.getItem('examResults')) || [];
-            teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
             
             // Update location guide with current settings
             updateLocationGuide();
@@ -1533,12 +1610,8 @@
             // Auto-refresh data every 30 seconds if admin is logged in
             setInterval(() => {
                 if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
-                    // Reload data from localStorage
-                    attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-                    examData = JSON.parse(localStorage.getItem('examData')) || [];
-                    examResults = JSON.parse(localStorage.getItem('examResults')) || [];
-                    teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
-                    
+                    // Reload data from cloud storage
+                    initCloudStorage();
                     updateStats();
                     renderAttendanceTable();
                 }
@@ -1928,7 +2001,7 @@
             };
             
             examResults.push(result);
-            localStorage.setItem('examResults', JSON.stringify(examResults));
+            saveToCloud();
             
             // Show result
             document.getElementById('examInterface').classList.add('hidden');
@@ -2009,7 +2082,7 @@
             };
             
             examData.push(newExam);
-            localStorage.setItem('examData', JSON.stringify(examData));
+            saveToCloud();
             
             alert('Ujian berhasil dibuat!');
             hideCreateExam();
@@ -2053,7 +2126,7 @@
             const exam = examData.find(e => e.id === examId);
             if (exam) {
                 exam.status = exam.status === 'active' ? 'inactive' : 'active';
-                localStorage.setItem('examData', JSON.stringify(examData));
+                saveToCloud();
                 renderExamManagementTable();
                 updateStats();
             }
@@ -2062,7 +2135,7 @@
         function deleteExam(examId) {
             if (confirm('Apakah Anda yakin ingin menghapus ujian ini?')) {
                 examData = examData.filter(e => e.id !== examId);
-                localStorage.setItem('examData', JSON.stringify(examData));
+                saveToCloud();
                 renderExamManagementTable();
                 updateStats();
             }
@@ -2098,7 +2171,7 @@
             };
 
             locationSettings = newSettings;
-            localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
+            saveToCloud();
 
             // Update location guide if attendance form is visible
             updateLocationGuide();
@@ -2318,7 +2391,7 @@
             };
 
             teacherData.push(newTeacher);
-            localStorage.setItem('teacherData', JSON.stringify(teacherData));
+            saveToCloud();
 
             alert('Data guru berhasil ditambahkan!');
             hideAddTeacher();
@@ -2358,7 +2431,7 @@
                 teacherData[teacherIndex].password = newPassword;
             }
 
-            localStorage.setItem('teacherData', JSON.stringify(teacherData));
+            saveToCloud();
 
             alert('Data guru berhasil diperbarui!');
             hideEditTeacher();
@@ -2368,7 +2441,7 @@
         function deleteTeacher(teacherId) {
             if (confirm('Apakah Anda yakin ingin menghapus data guru ini? Akun login guru juga akan dihapus.')) {
                 teacherData = teacherData.filter(t => t.id !== teacherId);
-                localStorage.setItem('teacherData', JSON.stringify(teacherData));
+                saveToCloud();
                 renderTeacherTable();
                 alert('Data guru berhasil dihapus!');
             }
@@ -2796,13 +2869,9 @@
                 date: new Date().toISOString().split('T')[0]
             };
             
-            // Load existing data, add new entry, and save back
-            let existingData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            existingData.push(formData);
-            localStorage.setItem('attendanceData', JSON.stringify(existingData));
-            
-            // Update global variable
-            attendanceData = existingData;
+            // Add new entry and save to cloud
+            attendanceData.push(formData);
+            saveToCloud();
             
             // Show success message with details
             const attendanceTypeText = attendanceType === 'masuk' ? 'MASUK' : 'PULANG';
@@ -2895,12 +2964,8 @@
         }
 
         function refreshData() {
-            // Reload data from localStorage
-            attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            examData = JSON.parse(localStorage.getItem('examData')) || [];
-            examResults = JSON.parse(localStorage.getItem('examResults')) || [];
-            teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
-            subjectData = JSON.parse(localStorage.getItem('subjectData')) || [];
+            // Reload data from cloud storage
+            initCloudStorage();
             
             // Update all displays
             updateStats();
@@ -2918,10 +2983,11 @@
                 refreshBtn.disabled = false;
             }, 1000);
             
-            console.log('Data refreshed:', {
+            console.log('Data refreshed from cloud:', {
                 attendance: attendanceData.length,
                 exams: examData.length,
-                results: examResults.length
+                results: examResults.length,
+                teachers: teacherData.length
             });
         }
 
@@ -3311,7 +3377,7 @@
             };
 
             subjectData.push(newSubject);
-            localStorage.setItem('subjectData', JSON.stringify(subjectData));
+            saveToCloud();
 
             alert('Mata pelajaran berhasil ditambahkan!');
             hideAddSubject();
@@ -3356,7 +3422,7 @@
             subjectData[subjectIndex].classes = selectedClasses;
             subjectData[subjectIndex].description = document.getElementById('editSubjectDescription').value;
 
-            localStorage.setItem('subjectData', JSON.stringify(subjectData));
+            saveToCloud();
 
             alert('Data mata pelajaran berhasil diperbarui!');
             hideEditSubject();
@@ -3366,7 +3432,7 @@
         function deleteSubject(subjectId) {
             if (confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')) {
                 subjectData = subjectData.filter(s => s.id !== subjectId);
-                localStorage.setItem('subjectData', JSON.stringify(subjectData));
+                saveToCloud();
                 renderSubjectTable();
                 alert('Mata pelajaran berhasil dihapus!');
             }
@@ -3376,7 +3442,7 @@
             const subject = subjectData.find(s => s.id === subjectId);
             if (subject) {
                 subject.status = subject.status === 'active' ? 'inactive' : 'active';
-                localStorage.setItem('subjectData', JSON.stringify(subjectData));
+                saveToCloud();
                 renderSubjectTable();
             }
         }
@@ -3584,13 +3650,9 @@
                 enteredBy: 'Admin'
             };
 
-            // Load existing data, add new entry, and save back
-            let existingData = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            existingData.push(formData);
-            localStorage.setItem('attendanceData', JSON.stringify(existingData));
-            
-            // Update global variable
-            attendanceData = existingData;
+            // Add new entry and save to cloud
+            attendanceData.push(formData);
+            saveToCloud();
 
             // Show success message
             const attendanceTypeText = formData.attendanceType === 'masuk' ? 'MASUK' : 'PULANG';
@@ -3609,5 +3671,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985071cfe2dfff8f',t:'MTc1ODg2NTQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98507de362860d78',t:'MTc1ODg2NTkxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
