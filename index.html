@@ -84,6 +84,32 @@
             </div>
         </div>
 
+        <!-- Teacher Login Modal -->
+        <div id="teacherLoginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 fade-in">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Login Guru</h2>
+                <form onsubmit="handleTeacherLogin(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="teacherLoginUsername" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Masukkan username guru" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="teacherLoginPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Masukkan password" required>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="hideTeacherLogin()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors">
+                            Login
+                        </button>
+                    </div>
+                </form>
+                <p class="text-xs text-gray-500 mt-4 text-center">Demo: ahmad.susanto / guru123</p>
+            </div>
+        </div>
+
         <!-- Public Section -->
         <div id="publicSection" class="space-y-8">
             <!-- Main Menu -->
@@ -114,10 +140,10 @@
                     </button>
                 </div>
                 <div class="grid md:grid-cols-3 gap-6">
-                    <button onclick="selectRole('guru')" class="role-card bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
+                    <button onclick="showTeacherLogin()" class="role-card bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
                         <div class="text-4xl mb-3">👨‍🏫</div>
                         <h3 class="text-xl font-bold mb-2">Guru</h3>
-                        <p class="text-green-100">Absensi untuk tenaga pengajar</p>
+                        <p class="text-green-100">Login dengan akun guru</p>
                     </button>
                     <button onclick="selectRole('karyawan')" class="role-card bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
                         <div class="text-4xl mb-3">👨‍💼</div>
@@ -259,12 +285,20 @@
             <!-- Attendance Form (existing code) -->
             <div id="attendanceForm" class="bg-white rounded-xl shadow-lg p-8 hidden">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Absensi <span id="selectedRoleTitle"></span></h2>
-                    <button onclick="backToAttendanceMenu()" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Absensi <span id="selectedRoleTitle"></span></h2>
+                        <p id="teacherWelcome" class="text-sm text-gray-600 hidden"></p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="teacherLogoutBtn" onclick="logoutTeacher()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors hidden">
+                            Logout Guru
+                        </button>
+                        <button onclick="backToAttendanceMenu()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <form onsubmit="handleAttendance(event)" class="space-y-6">
@@ -868,6 +902,7 @@
     <script>
         // Global variables
         let currentRole = '';
+        let currentTeacher = null;
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
         let examData = JSON.parse(localStorage.getItem('examData')) || [];
         let examResults = JSON.parse(localStorage.getItem('examResults')) || [];
@@ -1055,6 +1090,14 @@
             document.getElementById('loginModal').classList.add('hidden');
         }
 
+        function showTeacherLogin() {
+            document.getElementById('teacherLoginModal').classList.remove('hidden');
+        }
+
+        function hideTeacherLogin() {
+            document.getElementById('teacherLoginModal').classList.add('hidden');
+        }
+
         function showAttendanceMenu() {
             document.querySelector('.grid.md\\:grid-cols-2').parentElement.classList.add('hidden');
             document.getElementById('attendanceMenu').classList.remove('hidden');
@@ -1078,11 +1121,19 @@
             // Reset forms
             resetForm();
             currentStudent = null;
+            currentTeacher = null;
         }
 
         function backToAttendanceMenu() {
-            document.getElementById('attendanceForm').classList.add('hidden');
-            document.getElementById('attendanceMenu').classList.remove('hidden');
+            if (currentTeacher) {
+                // If teacher is logged in, go back to main menu
+                backToMainMenu();
+                currentTeacher = null;
+            } else {
+                // If not teacher, go back to attendance menu
+                document.getElementById('attendanceForm').classList.add('hidden');
+                document.getElementById('attendanceMenu').classList.remove('hidden');
+            }
             stopCamera();
             resetForm();
         }
@@ -1123,6 +1174,69 @@
             }
         }
 
+        function handleTeacherLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('teacherLoginUsername').value;
+            const password = document.getElementById('teacherLoginPassword').value;
+            
+            // Find teacher by username and password
+            const teacher = teacherData.find(t => t.username === username && t.password === password);
+            
+            if (teacher) {
+                currentTeacher = teacher;
+                currentRole = 'guru';
+                
+                hideTeacherLogin();
+                document.getElementById('attendanceMenu').classList.add('hidden');
+                document.getElementById('attendanceForm').classList.remove('hidden');
+                document.getElementById('selectedRoleTitle').textContent = 'Guru';
+                
+                // Pre-fill teacher data
+                document.getElementById('fullName').value = teacher.name;
+                document.getElementById('idNumber').value = teacher.nip;
+                document.getElementById('fullName').readOnly = true;
+                document.getElementById('idNumber').readOnly = true;
+                
+                // Hide siswa fields
+                document.getElementById('siswaFields').classList.add('hidden');
+                document.getElementById('kelas').required = false;
+                document.getElementById('jurusan').required = false;
+                
+                // Clear login form
+                document.getElementById('teacherLoginUsername').value = '';
+                document.getElementById('teacherLoginPassword').value = '';
+                
+                resetForm();
+                
+                // Show teacher welcome message and logout button
+                document.getElementById('teacherWelcome').textContent = `Login sebagai: ${teacher.name} (${teacher.subject})`;
+                document.getElementById('teacherWelcome').classList.remove('hidden');
+                document.getElementById('teacherLogoutBtn').classList.remove('hidden');
+                
+                alert(`Selamat datang, ${teacher.name}!\nAnda berhasil login sebagai guru.`);
+            } else {
+                alert('Username atau password guru salah!');
+            }
+        }
+
+        function logoutTeacher() {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                currentTeacher = null;
+                currentRole = '';
+                
+                // Hide teacher-specific elements
+                document.getElementById('teacherWelcome').classList.add('hidden');
+                document.getElementById('teacherLogoutBtn').classList.add('hidden');
+                
+                // Reset form fields
+                document.getElementById('fullName').readOnly = false;
+                document.getElementById('idNumber').readOnly = false;
+                
+                backToMainMenu();
+                alert('Anda telah logout dari akun guru.');
+            }
+        }
+
         function logout() {
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('publicSection').classList.remove('hidden');
@@ -1131,6 +1245,7 @@
             document.getElementById('teacherManagement').classList.add('hidden');
             document.getElementById('addTeacherForm').classList.add('hidden');
             document.getElementById('editTeacherForm').classList.add('hidden');
+            currentTeacher = null;
             backToMainMenu();
         }
 
@@ -1695,8 +1810,14 @@
         }
 
         function resetForm() {
-            document.getElementById('fullName').value = '';
-            document.getElementById('idNumber').value = '';
+            // Only reset if not a logged-in teacher
+            if (!currentTeacher) {
+                document.getElementById('fullName').value = '';
+                document.getElementById('idNumber').value = '';
+                document.getElementById('fullName').readOnly = false;
+                document.getElementById('idNumber').readOnly = false;
+            }
+            
             document.getElementById('kelas').value = '';
             document.getElementById('jurusan').value = '';
             document.getElementById('attendanceType').value = '';
@@ -2326,5 +2447,5 @@
             window.URL.revokeObjectURL(url);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f5881752ecdf1',t:'MTc1ODg1Mzg5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f6409847f6cc1',t:'MTc1ODg1NDM2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
