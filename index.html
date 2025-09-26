@@ -1189,17 +1189,17 @@
 
                     <div>
                         <label class="block text-gray-700 text-sm font-medium mb-2">Alamat Lengkap</label>
-                        <textarea id="schoolAddress" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" rows="3" placeholder="Masukkan alamat lengkap sekolah..." required></textarea>
+                        <textarea id="schoolAddress" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" rows="3" placeholder="Masukkan alamat lengkap sekolah..." required>Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Pekalongan, Jawa Tengah 51156</textarea>
                     </div>
 
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Latitude</label>
-                            <input type="number" id="schoolLatitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="-6.914700" required>
+                            <input type="number" id="schoolLatitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" value="-6.914700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Longitude</label>
-                            <input type="number" id="schoolLongitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="109.676200" required>
+                            <input type="number" id="schoolLongitude" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" value="109.676200" required>
                         </div>
                     </div>
 
@@ -1224,6 +1224,17 @@
                             <p>3. Klik kanan pada pin lokasi sekolah</p>
                             <p>4. Pilih koordinat yang muncul (contoh: -6.914700, 109.676200)</p>
                             <p>5. Copy dan paste ke form di atas</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-900 mb-2">🧪 Test Lokasi Saat Ini</h4>
+                        <p class="text-sm text-green-800 mb-3">Klik tombol di bawah untuk test apakah lokasi Anda saat ini valid untuk absensi</p>
+                        <div class="flex items-center space-x-4">
+                            <button type="button" onclick="testCurrentLocation()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                📍 Test Lokasi Sekarang
+                            </button>
+                            <div id="testLocationResult" class="text-sm"></div>
                         </div>
                     </div>
 
@@ -1486,8 +1497,8 @@
             locationSettings = {
                 schoolName: 'SMK Muhammadiyah Bojong',
                 schoolAddress: 'Jl. Raya Bojong, Bojong, Kec. Bojong, Kabupaten Pekalongan, Jawa Tengah 51156',
-                schoolLatitude: -6.9147,
-                schoolLongitude: 109.6762,
+                schoolLatitude: -6.914700,
+                schoolLongitude: 109.676200,
                 validationRadius: 200
             };
             localStorage.setItem('locationSettings', JSON.stringify(locationSettings));
@@ -2090,6 +2101,83 @@
 
             alert('Setting lokasi berhasil disimpan!\n\nSekarang semua absensi akan divalidasi berdasarkan lokasi yang telah ditentukan.');
             hideLocationSettings();
+        }
+
+        function testCurrentLocation() {
+            const resultEl = document.getElementById('testLocationResult');
+            const btnEl = event.target;
+            const originalText = btnEl.textContent;
+            
+            btnEl.textContent = '⏳ Mencari lokasi...';
+            btnEl.disabled = true;
+            resultEl.textContent = '';
+            
+            if (!navigator.geolocation) {
+                resultEl.innerHTML = '<span class="text-red-600">❌ Browser tidak mendukung GPS</span>';
+                btnEl.textContent = originalText;
+                btnEl.disabled = false;
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    // Get current settings from form
+                    const schoolLat = parseFloat(document.getElementById('schoolLatitude').value) || locationSettings.schoolLatitude;
+                    const schoolLng = parseFloat(document.getElementById('schoolLongitude').value) || locationSettings.schoolLongitude;
+                    const radius = parseInt(document.getElementById('validationRadius').value) || locationSettings.validationRadius;
+                    
+                    if (!schoolLat || !schoolLng || !radius) {
+                        resultEl.innerHTML = '<span class="text-yellow-600">⚠️ Lengkapi setting lokasi terlebih dahulu</span>';
+                        btnEl.textContent = originalText;
+                        btnEl.disabled = false;
+                        return;
+                    }
+                    
+                    const distance = calculateDistance(schoolLat, schoolLng, lat, lng);
+                    const isValid = distance <= radius;
+                    
+                    if (isValid) {
+                        resultEl.innerHTML = `<span class="text-green-600 font-medium">✅ VALID - Jarak ${Math.round(distance)}m dari sekolah</span>`;
+                    } else {
+                        resultEl.innerHTML = `<span class="text-red-600 font-medium">❌ TERLALU JAUH - Jarak ${Math.round(distance)}m (maksimal ${radius}m)</span>`;
+                    }
+                    
+                    resultEl.innerHTML += `<br><span class="text-gray-600 text-xs">Lokasi Anda: ${lat.toFixed(6)}, ${lng.toFixed(6)} (±${Math.round(accuracy)}m)</span>`;
+                    
+                    btnEl.textContent = originalText;
+                    btnEl.disabled = false;
+                },
+                function(error) {
+                    let errorMsg = 'Gagal mendapatkan lokasi: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Izin ditolak';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Lokasi tidak tersedia';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'Timeout';
+                            break;
+                        default:
+                            errorMsg += 'Error tidak diketahui';
+                            break;
+                    }
+                    
+                    resultEl.innerHTML = `<span class="text-red-600">❌ ${errorMsg}</span>`;
+                    btnEl.textContent = originalText;
+                    btnEl.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 300000
+                }
+            );
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -3517,5 +3605,5 @@
             renderAttendanceTable();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985059a127f58814',t:'MTc1ODg2NDQyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985062dda4effd2a',t:'MTc1ODg2NDgwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
