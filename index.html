@@ -268,7 +268,7 @@
                 </div>
 
                 <form onsubmit="handleAttendance(event)" class="space-y-6">
-                    <div class="grid md:grid-cols-2 gap-6">
+                    <div class="grid md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
                             <input type="text" id="fullName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan nama lengkap" required>
@@ -276,6 +276,25 @@
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">NIP/NIS</label>
                             <input type="text" id="idNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan NIP/NIS" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Jenis Absensi</label>
+                            <select id="attendanceType" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required onchange="checkAttendanceTime()">
+                                <option value="">Pilih Jenis Absensi</option>
+                                <option value="masuk">Absen Masuk</option>
+                                <option value="pulang">Absen Pulang</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Time Warning -->
+                    <div id="timeWarning" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <span class="text-yellow-600 text-xl">⚠️</span>
+                            <div>
+                                <h4 class="font-medium text-yellow-800 mb-1">Peringatan Waktu</h4>
+                                <p id="timeWarningText" class="text-sm text-yellow-700"></p>
+                            </div>
                         </div>
                     </div>
 
@@ -455,7 +474,7 @@
                         <h3 class="text-xl font-bold text-gray-900">Data Absensi</h3>
                         <span class="text-sm text-gray-500" id="lastUpdate">Terakhir diperbarui: -</span>
                     </div>
-                    <div class="flex flex-wrap items-center space-x-4">
+                    <div class="flex flex-wrap items-center gap-4">
                         <button onclick="refreshData()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
                             <span>🔄</span>
                             <span>Refresh</span>
@@ -466,7 +485,23 @@
                             <option value="karyawan">Karyawan</option>
                             <option value="siswa">Siswa</option>
                         </select>
-                        <input type="date" id="filterDate" onchange="filterData()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select id="filterType" onchange="filterData()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Jenis</option>
+                            <option value="masuk">Absen Masuk</option>
+                            <option value="pulang">Absen Pulang</option>
+                        </select>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-600">Dari:</label>
+                            <input type="date" id="filterDateFrom" onchange="filterData()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-600">Sampai:</label>
+                            <input type="date" id="filterDateTo" onchange="filterData()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <button onclick="resetFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm">
+                            <span>🔄</span>
+                            <span>Reset Filter</span>
+                        </button>
                         <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
                             <span>📥</span>
                             <span>Export CSV</span>
@@ -485,6 +520,8 @@
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Role</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Jenis</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">NIP/NIS</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas/Jurusan</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Lokasi</th>
@@ -685,7 +722,9 @@
             renderAttendanceTable();
             
             // Set today's date as default filter
-            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDateFrom').value = today;
+            document.getElementById('filterDateTo').value = today;
             
             // Auto-refresh data every 30 seconds if admin is logged in
             setInterval(() => {
@@ -1162,9 +1201,13 @@
             document.getElementById('idNumber').value = '';
             document.getElementById('kelas').value = '';
             document.getElementById('jurusan').value = '';
+            document.getElementById('attendanceType').value = '';
             hasPhoto = false;
             hasLocation = false;
             updateSubmitButton();
+            
+            // Reset time warning
+            document.getElementById('timeWarning').classList.add('hidden');
             
             // Reset camera
             document.getElementById('camera').classList.add('hidden');
@@ -1182,6 +1225,84 @@
             document.getElementById('manualLocationDiv').classList.add('hidden');
             document.getElementById('locationGuide').classList.remove('hidden');
             document.getElementById('manualLocation').value = '';
+        }
+
+        function checkAttendanceTime() {
+            const attendanceType = document.getElementById('attendanceType').value;
+            const timeWarning = document.getElementById('timeWarning');
+            const timeWarningText = document.getElementById('timeWarningText');
+            
+            if (!attendanceType) {
+                timeWarning.classList.add('hidden');
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+            const entryTime = 7 * 60 + 15; // 07:15 in minutes
+            const exitTime = 13 * 60 + 30; // 13:30 in minutes
+            
+            let showWarning = false;
+            let warningMessage = '';
+            
+            if (attendanceType === 'masuk') {
+                if (currentTime > entryTime) {
+                    showWarning = true;
+                    const lateMinutes = currentTime - entryTime;
+                    const lateHours = Math.floor(lateMinutes / 60);
+                    const lateRemainingMinutes = lateMinutes % 60;
+                    
+                    if (lateHours > 0) {
+                        warningMessage = `Anda terlambat ${lateHours} jam ${lateRemainingMinutes} menit dari jam masuk (07:15). Absensi akan tercatat sebagai TERLAMBAT.`;
+                    } else {
+                        warningMessage = `Anda terlambat ${lateRemainingMinutes} menit dari jam masuk (07:15). Absensi akan tercatat sebagai TERLAMBAT.`;
+                    }
+                }
+            } else if (attendanceType === 'pulang') {
+                if (currentTime < exitTime) {
+                    showWarning = true;
+                    const earlyMinutes = exitTime - currentTime;
+                    const earlyHours = Math.floor(earlyMinutes / 60);
+                    const earlyRemainingMinutes = earlyMinutes % 60;
+                    
+                    if (earlyHours > 0) {
+                        warningMessage = `Anda pulang ${earlyHours} jam ${earlyRemainingMinutes} menit lebih awal dari jam pulang (13:30). Absensi akan tercatat sebagai PULANG AWAL.`;
+                    } else {
+                        warningMessage = `Anda pulang ${earlyRemainingMinutes} menit lebih awal dari jam pulang (13:30). Absensi akan tercatat sebagai PULANG AWAL.`;
+                    }
+                }
+            }
+            
+            if (showWarning) {
+                timeWarningText.textContent = warningMessage;
+                timeWarning.classList.remove('hidden');
+            } else {
+                timeWarning.classList.add('hidden');
+            }
+        }
+
+        function getAttendanceStatus(attendanceType, timestamp) {
+            const date = new Date(timestamp);
+            const currentTime = date.getHours() * 60 + date.getMinutes();
+            const entryTime = 7 * 60 + 15; // 07:15
+            const exitTime = 13 * 60 + 30; // 13:30
+            
+            if (attendanceType === 'masuk') {
+                return currentTime <= entryTime ? 'TEPAT WAKTU' : 'TERLAMBAT';
+            } else if (attendanceType === 'pulang') {
+                return currentTime >= exitTime ? 'TEPAT WAKTU' : 'PULANG AWAL';
+            }
+            
+            return 'NORMAL';
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'TEPAT WAKTU': return 'bg-green-100 text-green-800';
+                case 'TERLAMBAT': return 'bg-red-100 text-red-800';
+                case 'PULANG AWAL': return 'bg-yellow-100 text-yellow-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
         }
 
         async function startCamera() {
@@ -1392,6 +1513,12 @@
         function handleAttendance(event) {
             event.preventDefault();
             
+            const attendanceType = document.getElementById('attendanceType').value;
+            if (!attendanceType) {
+                alert('Silakan pilih jenis absensi terlebih dahulu!');
+                return;
+            }
+            
             // Get location text properly
             let locationText = '';
             const coordsEl = document.getElementById('locationCoords');
@@ -1405,10 +1532,15 @@
                 locationText = 'Lokasi tidak tersedia';
             }
             
+            const timestamp = new Date().toISOString();
+            const status = getAttendanceStatus(attendanceType, timestamp);
+            
             const formData = {
                 id: Date.now(),
-                timestamp: new Date().toISOString(),
+                timestamp: timestamp,
                 role: currentRole,
+                attendanceType: attendanceType,
+                status: status,
                 name: document.getElementById('fullName').value,
                 idNumber: document.getElementById('idNumber').value,
                 kelas: currentRole === 'siswa' ? document.getElementById('kelas').value : '',
@@ -1427,7 +1559,8 @@
             attendanceData = existingData;
             
             // Show success message with details
-            const successMsg = `✅ Absensi berhasil disimpan!\n\nDetail:\n- Nama: ${formData.name}\n- Role: ${formData.role.toUpperCase()}\n- Waktu: ${new Date(formData.timestamp).toLocaleString('id-ID')}\n- Lokasi: ${locationText}`;
+            const attendanceTypeText = attendanceType === 'masuk' ? 'MASUK' : 'PULANG';
+            const successMsg = `✅ Absensi ${attendanceTypeText} berhasil disimpan!\n\nDetail:\n- Nama: ${formData.name}\n- Role: ${formData.role.toUpperCase()}\n- Jenis: ${attendanceTypeText}\n- Status: ${status}\n- Waktu: ${new Date(formData.timestamp).toLocaleString('id-ID')}\n- Lokasi: ${locationText}`;
             alert(successMsg);
             
             backToAttendanceMenu();
@@ -1459,7 +1592,7 @@
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                             <div class="flex flex-col items-center space-y-2">
                                 <span class="text-4xl">📋</span>
                                 <span>Belum ada data absensi</span>
@@ -1475,6 +1608,8 @@
                     
                     const time = new Date(item.timestamp).toLocaleString('id-ID');
                     const kelasJurusan = item.role === 'siswa' ? `${item.kelas} - ${item.jurusan}` : '-';
+                    const attendanceTypeText = item.attendanceType === 'masuk' ? 'Masuk' : 'Pulang';
+                    const status = item.status || 'NORMAL';
                     
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${time}</td>
@@ -1482,6 +1617,16 @@
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(item.role)}">
                                 ${item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${item.attendanceType === 'masuk' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}">
+                                ${attendanceTypeText}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(status)}">
+                                ${status}
                             </span>
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.idNumber}</td>
@@ -1566,20 +1711,38 @@
             let filtered = [...attendanceData];
             
             const roleFilter = document.getElementById('filterRole').value;
-            const dateFilter = document.getElementById('filterDate').value;
+            const typeFilter = document.getElementById('filterType').value;
+            const dateFromFilter = document.getElementById('filterDateFrom').value;
+            const dateToFilter = document.getElementById('filterDateTo').value;
             
             if (roleFilter) {
                 filtered = filtered.filter(item => item.role === roleFilter);
             }
             
-            if (dateFilter) {
-                filtered = filtered.filter(item => item.date === dateFilter);
+            if (typeFilter) {
+                filtered = filtered.filter(item => item.attendanceType === typeFilter);
+            }
+            
+            if (dateFromFilter) {
+                filtered = filtered.filter(item => item.date >= dateFromFilter);
+            }
+            
+            if (dateToFilter) {
+                filtered = filtered.filter(item => item.date <= dateToFilter);
             }
             
             return filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         }
 
         function filterData() {
+            renderAttendanceTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
             renderAttendanceTable();
         }
 
@@ -1590,13 +1753,15 @@
                 return;
             }
             
-            const headers = ['Waktu', 'Nama', 'Role', 'NIP/NIS', 'Kelas', 'Jurusan', 'Lokasi'];
+            const headers = ['Waktu', 'Nama', 'Role', 'Jenis', 'Status', 'NIP/NIS', 'Kelas', 'Jurusan', 'Lokasi'];
             const csvContent = [
                 headers.join(','),
                 ...data.map(item => [
                     `"${new Date(item.timestamp).toLocaleString('id-ID')}"`,
                     `"${item.name}"`,
                     `"${item.role}"`,
+                    `"${item.attendanceType === 'masuk' ? 'Masuk' : 'Pulang'}"`,
+                    `"${item.status || 'NORMAL'}"`,
                     `"${item.idNumber}"`,
                     `"${item.kelas || '-'}"`,
                     `"${item.jurusan || '-'}"`,
@@ -1620,6 +1785,8 @@
                         <th>Waktu</th>
                         <th>Nama</th>
                         <th>Role</th>
+                        <th>Jenis</th>
+                        <th>Status</th>
                         <th>NIP/NIS</th>
                         <th>Kelas</th>
                         <th>Jurusan</th>
@@ -1633,6 +1800,8 @@
                         <td>${new Date(item.timestamp).toLocaleString('id-ID')}</td>
                         <td>${item.name}</td>
                         <td>${item.role}</td>
+                        <td>${item.attendanceType === 'masuk' ? 'Masuk' : 'Pulang'}</td>
+                        <td>${item.status || 'NORMAL'}</td>
                         <td>${item.idNumber}</td>
                         <td>${item.kelas || '-'}</td>
                         <td>${item.jurusan || '-'}</td>
@@ -1658,5 +1827,5 @@
             window.URL.revokeObjectURL(url);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f3986f6aafe01',t:'MTc1ODg1MjYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f42c5d70dfe01',t:'MTc1ODg1MzAwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
