@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-ring {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">📚</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Sistem Absensi</h1>
+                        <p class="text-sm text-gray-600">SMK Teknologi Maju</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="currentTime" class="text-sm text-gray-600"></span>
+                    <button onclick="showLogin()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Login Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Login Modal -->
+        <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 fade-in">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Login Admin</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan username" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan password" required>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="hideLogin()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">
+                            Login
+                        </button>
+                    </div>
+                </form>
+                <p class="text-xs text-gray-500 mt-4 text-center">Demo: admin / admin123</p>
+            </div>
+        </div>
+
+        <!-- Public Attendance Section -->
+        <div id="publicSection" class="space-y-8">
+            <!-- Role Selection -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Pilih Jenis Absensi</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <button onclick="selectRole('guru')" class="role-card bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
+                        <div class="text-4xl mb-3">👨‍🏫</div>
+                        <h3 class="text-xl font-bold mb-2">Guru</h3>
+                        <p class="text-green-100">Absensi untuk tenaga pengajar</p>
+                    </button>
+                    <button onclick="selectRole('karyawan')" class="role-card bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
+                        <div class="text-4xl mb-3">👨‍💼</div>
+                        <h3 class="text-xl font-bold mb-2">Karyawan</h3>
+                        <p class="text-blue-100">Absensi untuk staff sekolah</p>
+                    </button>
+                    <button onclick="selectRole('siswa')" class="role-card bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl transition-all transform hover:scale-105">
+                        <div class="text-4xl mb-3">👨‍🎓</div>
+                        <h3 class="text-xl font-bold mb-2">Siswa</h3>
+                        <p class="text-purple-100">Absensi untuk peserta didik</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Attendance Form -->
+            <div id="attendanceForm" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Absensi <span id="selectedRoleTitle"></span></h2>
+                    <button onclick="backToRoleSelection()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form onsubmit="handleAttendance(event)" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                            <input type="text" id="fullName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan nama lengkap" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">NIP/NIS</label>
+                            <input type="text" id="idNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan NIP/NIS" required>
+                        </div>
+                    </div>
+
+                    <div id="siswaFields" class="hidden">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Kelas</label>
+                                <select id="kelas" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Pilih Kelas</option>
+                                    <option value="X RPL 1">X RPL 1</option>
+                                    <option value="X RPL 2">X RPL 2</option>
+                                    <option value="XI RPL 1">XI RPL 1</option>
+                                    <option value="XI RPL 2">XI RPL 2</option>
+                                    <option value="XII RPL 1">XII RPL 1</option>
+                                    <option value="XII RPL 2">XII RPL 2</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Jurusan</label>
+                                <select id="jurusan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Pilih Jurusan</option>
+                                    <option value="RPL">Rekayasa Perangkat Lunak</option>
+                                    <option value="TKJ">Teknik Komputer Jaringan</option>
+                                    <option value="MM">Multimedia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Camera Section -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">📸 Foto Absensi</h3>
+                        <div class="flex flex-col items-center space-y-4">
+                            <video id="camera" class="w-full max-w-md rounded-lg shadow-lg hidden" autoplay></video>
+                            <canvas id="photoCanvas" class="w-full max-w-md rounded-lg shadow-lg hidden"></canvas>
+                            <img id="capturedPhoto" class="w-full max-w-md rounded-lg shadow-lg hidden" alt="Foto yang diambil">
+                            
+                            <div class="flex flex-wrap gap-3 justify-center">
+                                <button type="button" id="startCameraBtn" onclick="startCamera()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center space-x-2">
+                                    <span>📷</span>
+                                    <span>Buka Kamera</span>
+                                </button>
+                                <button type="button" id="captureBtn" onclick="capturePhoto()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors hidden inline-flex items-center space-x-2">
+                                    <span>📸</span>
+                                    <span>Ambil Foto</span>
+                                </button>
+                                <button type="button" id="retakeBtn" onclick="retakePhoto()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition-colors hidden inline-flex items-center space-x-2">
+                                    <span>🔄</span>
+                                    <span>Foto Ulang</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GPS Section -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">📍 Lokasi GPS</h3>
+                        
+                        <!-- Location Permission Guide -->
+                        <div id="locationGuide" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-medium text-blue-900 mb-2">💡 Cara Mengizinkan Akses Lokasi:</h4>
+                            <div class="text-sm text-blue-800 space-y-1">
+                                <p>1. Klik tombol "Dapatkan Lokasi" di bawah</p>
+                                <p>2. Browser akan menampilkan popup izin lokasi</p>
+                                <p>3. Klik "Allow" atau "Izinkan" pada popup tersebut</p>
+                                <p>4. Jika tidak muncul popup, cek ikon 🔒 di address bar browser</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <p id="locationStatus" class="text-gray-600">Klik tombol untuk mendapatkan lokasi</p>
+                                <p id="locationCoords" class="text-sm text-gray-500 mt-1 hidden"></p>
+                                
+                                <!-- Manual Location Input -->
+                                <div id="manualLocationDiv" class="hidden mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <h5 class="font-medium text-yellow-800 mb-2">📝 Input Lokasi Manual</h5>
+                                    <p class="text-sm text-yellow-700 mb-3">Jika GPS tidak bisa diakses, masukkan lokasi secara manual:</p>
+                                    <input type="text" id="manualLocation" placeholder="Contoh: Ruang Guru, Lantai 2" class="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm">
+                                    <button type="button" onclick="useManualLocation()" class="mt-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                        Gunakan Lokasi Manual
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col space-y-2">
+                                <button type="button" id="getLocationBtn" onclick="getLocation()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center space-x-2">
+                                    <span>📍</span>
+                                    <span>Dapatkan Lokasi</span>
+                                </button>
+                                <button type="button" id="manualLocationBtn" onclick="showManualLocation()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center space-x-2 text-sm">
+                                    <span>📝</span>
+                                    <span>Input Manual</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="backToRoleSelection()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg transition-colors">
+                            Kembali
+                        </button>
+                        <button type="submit" id="submitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors disabled:bg-gray-400" disabled>
+                            Kirim Absensi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="hidden space-y-8">
+            <div class="flex justify-between items-center">
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard Admin</h2>
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Logout
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Total Absensi Hari Ini</p>
+                            <p class="text-3xl font-bold text-blue-600" id="totalToday">0</p>
+                        </div>
+                        <div class="text-4xl">📊</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Guru Hadir</p>
+                            <p class="text-3xl font-bold text-green-600" id="guruHadir">0</p>
+                        </div>
+                        <div class="text-4xl">👨‍🏫</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Karyawan Hadir</p>
+                            <p class="text-3xl font-bold text-blue-600" id="karyawanHadir">0</p>
+                        </div>
+                        <div class="text-4xl">👨‍💼</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Siswa Hadir</p>
+                            <p class="text-3xl font-bold text-purple-600" id="siswaHadir">0</p>
+                        </div>
+                        <div class="text-4xl">👨‍🎓</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and Export -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Data Absensi</h3>
+                    <div class="flex flex-wrap items-center space-x-4">
+                        <select id="filterRole" onchange="filterData()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Role</option>
+                            <option value="guru">Guru</option>
+                            <option value="karyawan">Karyawan</option>
+                            <option value="siswa">Siswa</option>
+                        </select>
+                        <input type="date" id="filterDate" onchange="filterData()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                            <span>📥</span>
+                            <span>Export CSV</span>
+                        </button>
+                        <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                            <span>📊</span>
+                            <span>Export Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Role</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">NIP/NIS</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas/Jurusan</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Lokasi</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Foto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable" class="divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let currentRole = '';
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let currentStream = null;
+        let hasPhoto = false;
+        let hasLocation = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            updateStats();
+            renderAttendanceTable();
+            
+            // Set today's date as default filter
+            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        function showLogin() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function hideLogin() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'admin' && password === 'admin123') {
+                hideLogin();
+                document.getElementById('publicSection').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                updateStats();
+                renderAttendanceTable();
+            } else {
+                alert('Username atau password salah!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('publicSection').classList.remove('hidden');
+            backToRoleSelection();
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('selectedRoleTitle').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+            document.querySelector('.grid.md\\:grid-cols-3').parentElement.classList.add('hidden');
+            document.getElementById('attendanceForm').classList.remove('hidden');
+            
+            // Show/hide siswa specific fields
+            if (role === 'siswa') {
+                document.getElementById('siswaFields').classList.remove('hidden');
+                document.getElementById('kelas').required = true;
+                document.getElementById('jurusan').required = true;
+            } else {
+                document.getElementById('siswaFields').classList.add('hidden');
+                document.getElementById('kelas').required = false;
+                document.getElementById('jurusan').required = false;
+            }
+            
+            resetForm();
+        }
+
+        function backToRoleSelection() {
+            document.getElementById('attendanceForm').classList.add('hidden');
+            document.querySelector('.grid.md\\:grid-cols-3').parentElement.classList.remove('hidden');
+            stopCamera();
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('fullName').value = '';
+            document.getElementById('idNumber').value = '';
+            document.getElementById('kelas').value = '';
+            document.getElementById('jurusan').value = '';
+            hasPhoto = false;
+            hasLocation = false;
+            updateSubmitButton();
+            
+            // Reset camera
+            document.getElementById('camera').classList.add('hidden');
+            document.getElementById('capturedPhoto').classList.add('hidden');
+            document.getElementById('startCameraBtn').classList.remove('hidden');
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('retakeBtn').classList.add('hidden');
+            
+            // Reset location
+            document.getElementById('locationStatus').textContent = 'Klik tombol untuk mendapatkan lokasi';
+            document.getElementById('locationStatus').className = 'text-gray-600';
+            document.getElementById('locationCoords').classList.add('hidden');
+            document.getElementById('getLocationBtn').classList.remove('hidden');
+            document.getElementById('manualLocationBtn').classList.add('hidden');
+            document.getElementById('manualLocationDiv').classList.add('hidden');
+            document.getElementById('locationGuide').classList.remove('hidden');
+            document.getElementById('manualLocation').value = '';
+        }
+
+        async function startCamera() {
+            const startBtn = document.getElementById('startCameraBtn');
+            const originalText = startBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                startBtn.innerHTML = '<span>⏳</span><span>Membuka Kamera...</span>';
+                startBtn.disabled = true;
+                
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Browser tidak mendukung akses kamera');
+                }
+                
+                currentStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    } 
+                });
+                
+                const video = document.getElementById('camera');
+                video.srcObject = currentStream;
+                video.classList.remove('hidden');
+                
+                // Wait for video to load
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = resolve;
+                });
+                
+                startBtn.classList.add('hidden');
+                document.getElementById('captureBtn').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                
+                let errorMessage = 'Tidak dapat mengakses kamera. ';
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Izin kamera ditolak. Silakan izinkan akses kamera di browser.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'Kamera tidak ditemukan.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage += 'Browser tidak mendukung akses kamera.';
+                } else {
+                    errorMessage += error.message || 'Terjadi kesalahan tidak diketahui.';
+                }
+                
+                alert(errorMessage);
+                
+                // Reset button
+                startBtn.innerHTML = originalText;
+                startBtn.disabled = false;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('photoCanvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            const photoData = canvas.toDataURL('image/jpeg', 0.8);
+            const img = document.getElementById('capturedPhoto');
+            img.src = photoData;
+            img.classList.remove('hidden');
+            
+            video.classList.add('hidden');
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('retakeBtn').classList.remove('hidden');
+            
+            hasPhoto = true;
+            updateSubmitButton();
+            stopCamera();
+        }
+
+        function retakePhoto() {
+            document.getElementById('capturedPhoto').classList.add('hidden');
+            document.getElementById('retakeBtn').classList.add('hidden');
+            document.getElementById('startCameraBtn').classList.remove('hidden');
+            hasPhoto = false;
+            updateSubmitButton();
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        function getLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            const coordsEl = document.getElementById('locationCoords');
+            const btnEl = document.getElementById('getLocationBtn');
+            const originalBtnText = btnEl.innerHTML;
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                statusEl.textContent = 'Browser tidak mendukung geolocation';
+                statusEl.className = 'text-red-600';
+                showManualLocationOption();
+                return;
+            }
+            
+            // Show loading state
+            statusEl.textContent = 'Mendapatkan lokasi...';
+            statusEl.className = 'text-blue-600';
+            btnEl.innerHTML = '<span>⏳</span><span>Mencari Lokasi...</span>';
+            btnEl.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    statusEl.textContent = '✅ Lokasi GPS berhasil didapatkan';
+                    statusEl.className = 'text-green-600 font-medium';
+                    coordsEl.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)} (±${Math.round(accuracy)}m)`;
+                    coordsEl.classList.remove('hidden');
+                    btnEl.classList.add('hidden');
+                    document.getElementById('manualLocationBtn').classList.add('hidden');
+                    document.getElementById('locationGuide').classList.add('hidden');
+                    
+                    hasLocation = true;
+                    updateSubmitButton();
+                },
+                function(error) {
+                    console.error('Geolocation error:', error);
+                    
+                    let errorMsg = 'Gagal mendapatkan lokasi GPS: ';
+                    let helpText = '';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Izin lokasi ditolak.';
+                            helpText = 'Coba refresh halaman dan klik "Allow" saat diminta izin lokasi, atau gunakan input manual di bawah.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Lokasi tidak tersedia.';
+                            helpText = 'Pastikan GPS aktif dan koneksi internet stabil, atau gunakan input manual.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'Timeout.';
+                            helpText = 'Coba lagi dalam beberapa saat atau gunakan input manual.';
+                            break;
+                        default:
+                            errorMsg += 'Error tidak diketahui.';
+                            helpText = 'Silakan gunakan input lokasi manual di bawah.';
+                            break;
+                    }
+                    
+                    statusEl.innerHTML = `${errorMsg}<br><small class="text-gray-600">${helpText}</small>`;
+                    statusEl.className = 'text-red-600';
+                    btnEl.innerHTML = originalBtnText;
+                    btnEl.disabled = false;
+                    
+                    // Show manual location option
+                    showManualLocationOption();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 300000
+                }
+            );
+        }
+
+        function showManualLocation() {
+            document.getElementById('manualLocationDiv').classList.remove('hidden');
+            document.getElementById('manualLocationBtn').classList.add('hidden');
+        }
+
+        function showManualLocationOption() {
+            document.getElementById('manualLocationBtn').classList.remove('hidden');
+        }
+
+        function useManualLocation() {
+            const manualInput = document.getElementById('manualLocation');
+            const location = manualInput.value.trim();
+            
+            if (!location) {
+                alert('Silakan masukkan lokasi terlebih dahulu');
+                manualInput.focus();
+                return;
+            }
+            
+            const statusEl = document.getElementById('locationStatus');
+            const coordsEl = document.getElementById('locationCoords');
+            
+            statusEl.textContent = '✅ Lokasi manual berhasil diset';
+            statusEl.className = 'text-green-600 font-medium';
+            coordsEl.textContent = `Lokasi: ${location}`;
+            coordsEl.classList.remove('hidden');
+            
+            document.getElementById('manualLocationDiv').classList.add('hidden');
+            document.getElementById('getLocationBtn').classList.add('hidden');
+            document.getElementById('manualLocationBtn').classList.add('hidden');
+            document.getElementById('locationGuide').classList.add('hidden');
+            
+            hasLocation = true;
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = !(hasPhoto && hasLocation);
+        }
+
+        function handleAttendance(event) {
+            event.preventDefault();
+            
+            const formData = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                role: currentRole,
+                name: document.getElementById('fullName').value,
+                idNumber: document.getElementById('idNumber').value,
+                kelas: currentRole === 'siswa' ? document.getElementById('kelas').value : '',
+                jurusan: currentRole === 'siswa' ? document.getElementById('jurusan').value : '',
+                photo: document.getElementById('capturedPhoto').src,
+                location: document.getElementById('locationCoords').textContent,
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            attendanceData.push(formData);
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            
+            alert('Absensi berhasil disimpan!');
+            backToRoleSelection();
+            updateStats();
+        }
+
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = attendanceData.filter(item => item.date === today);
+            
+            document.getElementById('totalToday').textContent = todayData.length;
+            document.getElementById('guruHadir').textContent = todayData.filter(item => item.role === 'guru').length;
+            document.getElementById('karyawanHadir').textContent = todayData.filter(item => item.role === 'karyawan').length;
+            document.getElementById('siswaHadir').textContent = todayData.filter(item => item.role === 'siswa').length;
+        }
+
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTable');
+            const filteredData = getFilteredData();
+            
+            tbody.innerHTML = '';
+            
+            filteredData.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const time = new Date(item.timestamp).toLocaleString('id-ID');
+                const kelasJurusan = item.role === 'siswa' ? `${item.kelas} - ${item.jurusan}` : '-';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${time}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(item.role)}">
+                            ${item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.idNumber}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${kelasJurusan}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${item.location}</td>
+                    <td class="px-4 py-3">
+                        <button onclick="showPhoto('${item.photo}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Lihat Foto
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function getRoleBadgeClass(role) {
+            switch(role) {
+                case 'guru': return 'bg-green-100 text-green-800';
+                case 'karyawan': return 'bg-blue-100 text-blue-800';
+                case 'siswa': return 'bg-purple-100 text-purple-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function showPhoto(photoSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="max-w-2xl max-h-full p-4">
+                    <img src="${photoSrc}" class="max-w-full max-h-full rounded-lg shadow-lg" alt="Foto Absensi">
+                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">
+                        ✕
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function getFilteredData() {
+            let filtered = [...attendanceData];
+            
+            const roleFilter = document.getElementById('filterRole').value;
+            const dateFilter = document.getElementById('filterDate').value;
+            
+            if (roleFilter) {
+                filtered = filtered.filter(item => item.role === roleFilter);
+            }
+            
+            if (dateFilter) {
+                filtered = filtered.filter(item => item.date === dateFilter);
+            }
+            
+            return filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        }
+
+        function filterData() {
+            renderAttendanceTable();
+        }
+
+        function exportToCSV() {
+            const data = getFilteredData();
+            if (data.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+            
+            const headers = ['Waktu', 'Nama', 'Role', 'NIP/NIS', 'Kelas', 'Jurusan', 'Lokasi'];
+            const csvContent = [
+                headers.join(','),
+                ...data.map(item => [
+                    `"${new Date(item.timestamp).toLocaleString('id-ID')}"`,
+                    `"${item.name}"`,
+                    `"${item.role}"`,
+                    `"${item.idNumber}"`,
+                    `"${item.kelas || '-'}"`,
+                    `"${item.jurusan || '-'}"`,
+                    `"${item.location}"`
+                ].join(','))
+            ].join('\n');
+            
+            downloadFile(csvContent, 'absensi.csv', 'text/csv');
+        }
+
+        function exportToExcel() {
+            const data = getFilteredData();
+            if (data.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+            
+            let html = `
+                <table border="1">
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Nama</th>
+                        <th>Role</th>
+                        <th>NIP/NIS</th>
+                        <th>Kelas</th>
+                        <th>Jurusan</th>
+                        <th>Lokasi</th>
+                    </tr>
+            `;
+            
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${new Date(item.timestamp).toLocaleString('id-ID')}</td>
+                        <td>${item.name}</td>
+                        <td>${item.role}</td>
+                        <td>${item.idNumber}</td>
+                        <td>${item.kelas || '-'}</td>
+                        <td>${item.jurusan || '-'}</td>
+                        <td>${item.location}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            
+            downloadFile(html, 'absensi.xls', 'application/vnd.ms-excel');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f2b39a721a3e0',t:'MTc1ODg1MjAzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
