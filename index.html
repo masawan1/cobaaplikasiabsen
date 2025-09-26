@@ -2252,9 +2252,10 @@
                         <td class="px-4 py-3 text-sm text-gray-900">${kelasJurusan}</td>
                         <td class="px-4 py-3 text-sm text-gray-600">${item.location}</td>
                         <td class="px-4 py-3">
-                            <button onclick="showPhoto('${item.photo}')" class="text-blue-600 hover:text-blue-800 text-sm">
-                                Lihat Foto
-                            </button>
+                            ${item.photo ? 
+                                `<button onclick="showPhoto('${item.photo}')" class="text-blue-600 hover:text-blue-800 text-sm">Lihat Foto</button>` : 
+                                `<span class="text-gray-400 text-sm">${item.isManualEntry ? 'Manual Entry' : 'Tidak ada foto'}</span>`
+                            }
                         </td>
                     `;
                     
@@ -2272,6 +2273,7 @@
             examData = JSON.parse(localStorage.getItem('examData')) || [];
             examResults = JSON.parse(localStorage.getItem('examResults')) || [];
             teacherData = JSON.parse(localStorage.getItem('teacherData')) || [];
+            subjectData = JSON.parse(localStorage.getItem('subjectData')) || [];
             
             // Update all displays
             updateStats();
@@ -2447,5 +2449,5 @@
             window.URL.revokeObjectURL(url);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f6409847f6cc1',t:'MTc1ODg1NDM2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984f760354e4601c',t:'MTc1ODg1NTEwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
